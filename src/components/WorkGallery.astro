@@ -10,7 +10,7 @@ const { items } = Astro.props;
 
 <div class="work-grid">
   {items.map((work, index) => (
-    <article class="work-card" data-scroll-reveal>
+    <article class="work-card" data-scroll-reveal data-scroll-reveal-repeat>
       <button
         class="work-card__open"
         type="button"
@@ -89,7 +89,12 @@ const { items } = Astro.props;
     nextButton.addEventListener('click', () => showImage(currentIndex + 1));
     closeButton.addEventListener('click', () => dialog.close());
     dialog.addEventListener('click', (event) => {
-      if (event.target === dialog) dialog.close();
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const clickedInteractiveContent = target.closest(
+        '.lightbox__topline, .lightbox__nav, .lightbox__image-wrap, .lightbox__hint',
+      );
+      if (!clickedInteractiveContent) dialog.close();
     });
     dialog.addEventListener('close', () => {
       image.src = '';
