@@ -1,0 +1,21 @@
+---
+import { categories } from '../data/works';
+
+interface Props {
+  active?: string;
+}
+
+const { active } = Astro.props;
+---
+
+<nav class="category-nav" aria-label="作品分類">
+  {categories.map((category) => (
+    <a
+      class:list={["category-pill", { "is-active": active === category.slug }]}
+      href={`/works/${category.slug}/`}
+      aria-current={active === category.slug ? 'page' : undefined}
+    >
+      {category.title}
+    </a>
+  ))}
+</nav>

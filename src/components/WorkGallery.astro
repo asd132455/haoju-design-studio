@@ -1,0 +1,148 @@
+---
+import type { WorkItem } from '../data/works';
+
+interface Props {
+  items: WorkItem[];
+}
+
+const { items } = Astro.props;
+---
+
+<div class="work-grid">
+  {items.map((work, index) => (
+    <article class="work-card" data-scroll-reveal>
+      <button
+        class="work-card__open"
+        type="button"
+        data-lightbox-open
+        data-image={work.image}
+        data-alt={work.alt}
+        data-category={work.category}
+        aria-label={`放大觀看：${work.title}`}
+      >
+        <span class="work-card__image-wrap">
+          <img src={work.image} alt={work.alt} loading={index < 3 ? 'eager' : 'lazy'} decoding="async" />
+          <span class="work-card__zoom" aria-hidden="true">↗</span>
+        </span>
+      </button>
+    </article>
+  ))}
+</div>
+
+<dialog class="lightbox" data-lightbox aria-label="作品放大檢視">
+  <div class="lightbox__topline">
+    <button class="lightbox__close" type="button" data-lightbox-close aria-label="關閉作品放大檢視"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg></button>
+  </div>
+  <button class="lightbox__nav lightbox__nav--prev" type="button" data-lightbox-prev aria-label="上一張作品"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 5-7 7 7 7" /></svg></button>
+  <div class="lightbox__image-wrap">
+    <img data-lightbox-image src="" alt="" />
+  </div>
+  <button class="lightbox__nav lightbox__nav--next" type="button" data-lightbox-next aria-label="下一張作品"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 5 7 7-7 7" /></svg></button>
+  <p class="lightbox__hint">觸控螢幕可雙指縮放，左右滑動切換作品</p>
+</dialog>
+
+<script>
+  const dialog = document.querySelector<HTMLDialogElement>('[data-lightbox]');
+  const image = dialog?.querySelector<HTMLImageElement>('[data-lightbox-image]');
+  const closeButton = dialog?.querySelector<HTMLButtonElement>('[data-lightbox-close]');
+  const previousButton = dialog?.querySelector<HTMLButtonElement>('[data-lightbox-prev]');
+  const nextButton = dialog?.querySelector<HTMLButtonElement>('[data-lightbox-next]');
+  const imageWrap = dialog?.querySelector<HTMLElement>('.lightbox__image-wrap');
+  const cards = [...document.querySelectorAll<HTMLButtonElement>('[data-lightbox-open]')];
+  let currentIndex = 0;
+  let scale = 1;
+  const pointers = new Map<number, { x: number; y: number }>();
+  let gestureStart = { x: 0, y: 0 };
+  let startDistance = 0;
+  let startScale = 1;
+  let pan = { x: 0, y: 0 };
+  let startPan = { x: 0, y: 0 };
+  let startScrollTop = 0;
+
+  const resetScale = () => {
+    scale = 1;
+    pan = { x: 0, y: 0 };
+    image?.style.setProperty('transform', 'translate(0px, 0px) scale(1)');
+  };
+
+  const showImage = (index: number) => {
+    if (!image || !cards.length) return;
+    currentIndex = (index + cards.length) % cards.length;
+    const button = cards[currentIndex];
+    image.src = button.dataset.image ?? '';
+    image.alt = button.dataset.alt ?? '';
+    dialog?.setAttribute('data-category', button.dataset.category ?? '');
+    resetScale();
+    imageWrap?.scrollTo({ top: 0, left: 0 });
+  };
+
+  if (dialog && image && closeButton && previousButton && nextButton && imageWrap) {
+    cards.forEach((button, index) => {
+      button.addEventListener('click', () => {
+        showImage(index);
+        dialog.showModal();
+        closeButton.focus();
+      });
+    });
+
+    previousButton.addEventListener('click', () => showImage(currentIndex - 1));
+    nextButton.addEventListener('click', () => showImage(currentIndex + 1));
+    closeButton.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+    dialog.addEventListener('close', () => {
+      image.src = '';
+      resetScale();
+    });
+
+    const distanceBetween = (points: { x: number; y: number }[]) => Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
+    const renderTransform = () => { image.style.transform = `translate(${pan.x}px, ${pan.y}px) scale(${scale})`; };
+    imageWrap.addEventListener('pointerdown', (event) => {
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
+      imageWrap.setPointerCapture(event.pointerId);
+      pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      gestureStart = { x: event.clientX, y: event.clientY };
+      startPan = { ...pan };
+      startScrollTop = imageWrap.scrollTop;
+      if (pointers.size === 2) {
+        const points = [...pointers.values()];
+        startDistance = distanceBetween(points);
+        startScale = scale;
+      }
+    });
+    imageWrap.addEventListener('pointermove', (event) => {
+      if (!pointers.has(event.pointerId)) return;
+      pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (pointers.size >= 2 && startDistance) {
+        scale = Math.max(1, Math.min(4, startScale * distanceBetween([...pointers.values()]) / startDistance));
+        renderTransform();
+        return;
+      }
+      const dx = event.clientX - gestureStart.x;
+      const dy = event.clientY - gestureStart.y;
+      if (scale > 1) {
+        pan = { x: startPan.x + dx, y: startPan.y + dy };
+        renderTransform();
+      } else if (dialog.dataset.category === 'sales-page') {
+        imageWrap.scrollTop = startScrollTop - dy;
+      }
+    });
+    const endPointer = (event: PointerEvent) => {
+      const wasSinglePointer = pointers.size === 1;
+      pointers.delete(event.pointerId);
+      if (wasSinglePointer && scale === 1) {
+        const dx = event.clientX - gestureStart.x;
+        const dy = event.clientY - gestureStart.y;
+        if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.25) showImage(currentIndex + (dx < 0 ? 1 : -1));
+      }
+      if (pointers.size < 2) startDistance = 0;
+    };
+    imageWrap.addEventListener('pointerup', endPointer);
+    imageWrap.addEventListener('pointercancel', endPointer);
+    dialog.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowLeft') showImage(currentIndex - 1);
+      if (event.key === 'ArrowRight') showImage(currentIndex + 1);
+    });
+  }
+</script>

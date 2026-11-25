@@ -1,0 +1,24 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import SiteFooter from '../../components/SiteFooter.astro';
+import CategoryNav from '../../components/CategoryNav.astro';
+import WorkGallery from '../../components/WorkGallery.astro';
+import { works } from '../../data/works';
+---
+
+<BaseLayout title="作品案例｜好聚設計" description="瀏覽好聚設計的電商視覺、社群視覺、銷售頁、平面設計與影片作品。">
+  <SiteHeader />
+  <main class="portfolio-page">
+    <section class="portfolio-heading">
+      <h1>作品案例<span>，一張張好好看。</span></h1>
+      <p>聚焦品牌特色，讓每一種視覺都找到自己的位置。</p>
+    </section>
+    <CategoryNav />
+    <section class="portfolio-gallery" aria-label="全部作品">
+      <WorkGallery items={works} />
+    </section>
+    <div class="portfolio-bottom"><a href="/" class="text-link">回到好聚首頁 <span aria-hidden="true">↗</span></a></div>
+  </main>
+  <SiteFooter />
+</BaseLayout>

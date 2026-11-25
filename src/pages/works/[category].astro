@@ -1,0 +1,30 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import SiteFooter from '../../components/SiteFooter.astro';
+import CategoryNav from '../../components/CategoryNav.astro';
+import WorkGallery from '../../components/WorkGallery.astro';
+import { categories, works } from '../../data/works';
+
+export function getStaticPaths() {
+  return categories.map((category) => ({ params: { category: category.slug }, props: { category } }));
+}
+
+const { category } = Astro.props;
+const items = works.filter((work) => work.category === category.slug);
+---
+
+<BaseLayout title={`${category.title}作品｜好聚設計`} description={category.description}>
+  <SiteHeader />
+  <main class="portfolio-page">
+    <section class="portfolio-heading portfolio-heading--category">
+      <h1>{category.title}<span>，好好聚焦。</span></h1>
+      <p>{category.description}</p>
+    </section>
+    <CategoryNav active={category.slug} />
+    <section class="portfolio-gallery" aria-label={`${category.title}作品`}>
+      <WorkGallery items={items} />
+    </section>
+  </main>
+  <SiteFooter />
+</BaseLayout>
