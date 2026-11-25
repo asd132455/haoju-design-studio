@@ -40,8 +40,9 @@ public/
   images/brand/ 好聚品牌識別
   images/works/ 分類作品圖片與燈箱素材
   fonts/        自有或已授權字型
-.agents/skills/ Codex 專案設計技能
 ```
+
+Codex 專案 Skills 放在本機 `.agents/skills/`，不包含在 GitHub 儲存庫中。
 
 專案約定請參考根目錄 `AGENTS.md`。開始設計內容前，請補上實際作品、服務、品牌介紹與聯絡資訊。
 
