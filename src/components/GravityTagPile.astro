@@ -113,16 +113,23 @@ import { gameAdCategories } from '../data/game-ads';
         context.rotate(tag.renderAngle);
         pillPath(-tag.width / 2, -tag.height / 2, tag.width, tag.height);
         const style = index % 3;
+        const gradient = context.createLinearGradient(0, -tag.height / 2, 0, tag.height / 2);
         if (style === 0) {
-          context.fillStyle = '#63927b';
+          gradient.addColorStop(0, '#82ad96');
+          gradient.addColorStop(1, '#63927b');
+          context.fillStyle = gradient;
           context.fill();
           context.fillStyle = '#fff';
         } else if (style === 1) {
-          context.fillStyle = '#fff';
+          gradient.addColorStop(0, '#fff');
+          gradient.addColorStop(1, '#f1e9e1');
+          context.fillStyle = gradient;
           context.fill();
           context.fillStyle = '#dbb695';
         } else {
-          context.fillStyle = '#c48962';
+          gradient.addColorStop(0, '#d6a17d');
+          gradient.addColorStop(1, '#c48962');
+          context.fillStyle = gradient;
           context.fill();
           context.fillStyle = '#fff';
         }

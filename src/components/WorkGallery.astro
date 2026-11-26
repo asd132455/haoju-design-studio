@@ -53,6 +53,9 @@ const { items, activeCategory } = Astro.props;
   const allCards = [...document.querySelectorAll<HTMLButtonElement>('[data-lightbox-open]')];
   let cards = [...allCards];
   let currentIndex = 0;
+  let imageRequest = 0;
+  let closeTimer = 0;
+  let closePending = false;
   let scale = 1;
   const pointers = new Map<number, { x: number; y: number }>();
   let gestureStart = { x: 0, y: 0 };
@@ -72,11 +75,34 @@ const { items, activeCategory } = Astro.props;
     if (!image || !cards.length) return;
     currentIndex = (index + cards.length) % cards.length;
     const button = cards[currentIndex];
-    image.src = button.dataset.image ?? '';
+    const requestId = ++imageRequest;
+    const nextImageSource = button.dataset.image ?? '';
+    if (!image.hasAttribute('src')) image.hidden = true;
     image.alt = button.dataset.alt ?? '';
     dialog?.setAttribute('data-category', button.dataset.category ?? '');
     resetScale();
     imageWrap?.scrollTo({ top: 0, left: 0 });
+
+    const preload = new Image();
+    const revealLoadedImage = () => {
+      if (requestId === imageRequest) image.hidden = false;
+    };
+    preload.onload = () => {
+      if (requestId !== imageRequest) return;
+      image.src = nextImageSource;
+      revealLoadedImage();
+    };
+    preload.src = nextImageSource;
+    if (preload.complete && preload.naturalWidth > 0) {
+      image.src = nextImageSource;
+      revealLoadedImage();
+    }
+  };
+
+  const requestClose = () => {
+    if (!dialog?.open || closePending) return;
+    closePending = true;
+    closeTimer = window.setTimeout(() => dialog.close(), 420);
   };
 
   if (dialog && image && closeButton && previousButton && nextButton && imageWrap) {
@@ -85,6 +111,8 @@ const { items, activeCategory } = Astro.props;
         cards = allCards.filter((card) => !card.closest<HTMLElement>('[data-work-category]')?.hidden);
         const index = cards.indexOf(button);
         if (index < 0) return;
+        window.clearTimeout(closeTimer);
+        closePending = false;
         showImage(index);
         dialog.showModal();
         if (studioCursor) {
@@ -98,22 +126,53 @@ const { items, activeCategory } = Astro.props;
 
     previousButton.addEventListener('click', () => showImage(currentIndex - 1));
     nextButton.addEventListener('click', () => showImage(currentIndex + 1));
-    closeButton.addEventListener('click', () => dialog.close());
+    closeButton.addEventListener('click', requestClose);
     dialog.addEventListener('click', (event) => {
       const target = event.target;
       if (!(target instanceof Element)) return;
-      const clickedInteractiveContent = target.closest(
-        '.lightbox__topline, .lightbox__nav, .lightbox__image-wrap, .lightbox__hint',
-      );
-      if (!clickedInteractiveContent) dialog.close();
+      if (target.closest('button')) return;
+      const clickedImage = target.closest<HTMLImageElement>('img[data-lightbox-image]')
+        ?? (target.closest('.lightbox__image-wrap') ? image : null);
+      if (clickedImage && image.naturalWidth > 0 && image.naturalHeight > 0) {
+        const bounds = image.getBoundingClientRect();
+        const imageRatio = image.naturalWidth / image.naturalHeight;
+        const boxRatio = bounds.width / bounds.height;
+        let visibleImageBounds = bounds;
+
+        if (dialog.dataset.category !== 'sales-page') {
+          if (imageRatio > boxRatio) {
+            const visibleHeight = bounds.width / imageRatio;
+            visibleImageBounds = new DOMRect(bounds.left, bounds.top + (bounds.height - visibleHeight) / 2, bounds.width, visibleHeight);
+          } else {
+            const visibleWidth = bounds.height * imageRatio;
+            visibleImageBounds = new DOMRect(bounds.left + (bounds.width - visibleWidth) / 2, bounds.top, visibleWidth, bounds.height);
+          }
+        }
+
+        const insideImage =
+          event.clientX >= visibleImageBounds.left &&
+          event.clientX <= visibleImageBounds.right &&
+          event.clientY >= visibleImageBounds.top &&
+          event.clientY <= visibleImageBounds.bottom;
+        if (insideImage) return;
+      }
+      requestClose();
+    });
+    dialog.addEventListener('cancel', (event) => {
+      event.preventDefault();
+      requestClose();
     });
     dialog.addEventListener('close', () => {
+      window.clearTimeout(closeTimer);
+      closePending = false;
       if (studioCursor) {
         document.body.append(studioCursor);
         studioCursor.classList.remove('is-in-lightbox');
         dialog.classList.remove('has-studio-cursor');
       }
-      image.src = '';
+      imageRequest++;
+      image.hidden = true;
+      image.removeAttribute('src');
       resetScale();
     });
 

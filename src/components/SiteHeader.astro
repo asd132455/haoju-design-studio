@@ -1,5 +1,9 @@
 ---
 const lineUrl = 'https://line.me/ti/p/fJpEGM2oB2';
+const currentPath = Astro.url.pathname;
+const isHomePage = currentPath === '/';
+const isDesignPage = currentPath.startsWith('/works/');
+const isGameAdsPage = currentPath.startsWith('/game-ads/');
 ---
 
 <header class="site-header" id="top">
@@ -8,9 +12,9 @@ const lineUrl = 'https://line.me/ti/p/fJpEGM2oB2';
     <span class="brand-lockup__words"><strong>好聚設計</strong><small>HAOJU DESIGN</small></span>
   </a>
   <nav class="main-nav" aria-label="主要導覽">
-    <a href="/#hello-interactive" data-about-link>關於好聚</a>
-    <a href="/works/ecommerce/">設計作品</a>
-    <a href="/game-ads/japanese-korean/">遊戲廣告</a>
+    <a href="/#hello-interactive" data-about-link aria-current={isHomePage ? 'page' : undefined}>關於好聚</a>
+    <a href="/works/ecommerce/" aria-current={isDesignPage ? 'page' : undefined}>設計作品</a>
+    <a href="/game-ads/japanese-korean/" aria-current={isGameAdsPage ? 'page' : undefined}>遊戲廣告</a>
     <a class="main-nav__contact" href={lineUrl} target="_blank" rel="noreferrer">LINE 聯絡 <span aria-hidden="true">↗</span></a>
   </nav>
 </header>

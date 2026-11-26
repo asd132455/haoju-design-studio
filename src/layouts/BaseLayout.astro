@@ -118,8 +118,9 @@ import '../styles/global.css';
         window.addEventListener('pointermove', (event) => {
           const lightbox = cursor.closest<HTMLDialogElement>('[data-lightbox]');
           const bounds = lightbox?.getBoundingClientRect();
-          const x = bounds ? event.clientX - bounds.left : event.clientX;
-          const y = bounds ? event.clientY - bounds.top : event.clientY;
+          const lightboxStyle = lightbox ? getComputedStyle(lightbox) : null;
+          const x = bounds ? event.clientX - bounds.left - parseFloat(lightboxStyle?.paddingLeft ?? '0') : event.clientX;
+          const y = bounds ? event.clientY - bounds.top - parseFloat(lightboxStyle?.paddingTop ?? '0') : event.clientY;
           cursorPoint = { x, y };
           cursor.style.transform = `translate3d(${x}px, ${y}px, 0)`;
           document.body.classList.add('has-studio-cursor');
