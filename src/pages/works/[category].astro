@@ -4,6 +4,7 @@ import SiteHeader from '../../components/SiteHeader.astro';
 import SiteFooter from '../../components/SiteFooter.astro';
 import CategoryNav from '../../components/CategoryNav.astro';
 import WorkGallery from '../../components/WorkGallery.astro';
+import ContactCTA from '../../components/ContactCTA.astro';
 import { categories, works } from '../../data/works';
 
 export function getStaticPaths() {
@@ -11,20 +12,167 @@ export function getStaticPaths() {
 }
 
 const { category } = Astro.props;
-const items = works.filter((work) => work.category === category.slug);
 ---
 
 <BaseLayout title={`${category.title}作品｜好聚設計`} description={category.description}>
   <SiteHeader />
   <main class="portfolio-page">
+    <section class="graphic-design-network" data-particle-network aria-label="設計作品粒子連線互動">
+        <canvas class="graphic-design-network__canvas" data-particle-network-canvas aria-hidden="true"></canvas>
+        <div class="hello-crosshair" data-network-crosshair aria-hidden="true">
+          <span class="hello-crosshair__line hello-crosshair__line--horizontal"></span>
+          <span class="hello-crosshair__line hello-crosshair__line--vertical"></span>
+          <span class="hello-crosshair__target"></span>
+        </div>
+        <h2 class="graphic-design-network__title">DESIGN</h2>
+      </section>
     <section class="portfolio-heading portfolio-heading--category">
-      <h1>{category.title}<span>，好好聚焦。</span></h1>
-      <p>{category.description}</p>
+      <h1 data-scroll-reveal-repeat>{category.title}<span>，好好聚焦。</span></h1>
+      <p data-scroll-reveal-repeat>{category.description}</p>
     </section>
     <CategoryNav active={category.slug} />
-    <section class="portfolio-gallery" aria-label={`${category.title}作品`}>
-      <WorkGallery items={items} />
+    <section class="portfolio-gallery" data-work-gallery aria-label={`${category.title}作品`}>
+      <WorkGallery items={works} activeCategory={category.slug} />
+      <p class="portfolio-empty" data-work-gallery-empty hidden>此分類作品整理中，敬請期待。</p>
     </section>
+    <ContactCTA />
   </main>
   <SiteFooter />
 </BaseLayout>
+
+<script>
+  const networkSections = document.querySelectorAll<HTMLElement>('[data-particle-network]');
+
+  networkSections.forEach((section) => {
+    const canvas = section.querySelector<HTMLCanvasElement>('[data-particle-network-canvas]');
+    const context = canvas?.getContext('2d');
+    const crosshairLayer = section.querySelector<HTMLElement>('[data-network-crosshair]');
+    if (!canvas || !context) return;
+
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const pointer = { x: -1000, y: -1000, active: false };
+    let width = 0;
+    let height = 0;
+    let frame = 0;
+    let particles: { x: number; y: number; vx: number; vy: number; radius: number }[] = [];
+
+    const resize = () => {
+      const bounds = section.getBoundingClientRect();
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      width = bounds.width;
+      height = bounds.height;
+      canvas.width = Math.round(width * ratio);
+      canvas.height = Math.round(height * ratio);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      context?.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+      const count = Math.max(36, Math.min(68, Math.round(width / 22)));
+      particles = Array.from({ length: count }, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.48,
+        vy: (Math.random() - 0.5) * 0.48,
+        radius: 1 + Math.random() * 1.25,
+      }));
+      draw();
+    };
+
+    const draw = () => {
+      if (!context) return;
+      context.clearRect(0, 0, width, height);
+
+      particles.forEach((particle) => {
+        if (pointer.active) {
+          const dx = pointer.x - particle.x;
+          const dy = pointer.y - particle.y;
+          const distance = Math.hypot(dx, dy);
+          if (distance < 170 && distance > 0) {
+            const pull = (1 - distance / 170) * 0.012;
+            particle.vx += (dx / distance) * pull;
+            particle.vy += (dy / distance) * pull;
+          }
+        }
+
+        particle.vx *= 0.998;
+        particle.vy *= 0.998;
+        particle.x += particle.vx;
+        particle.y += particle.vy;
+        if (particle.x < 0 || particle.x > width) particle.vx *= -1;
+        if (particle.y < 0 || particle.y > height) particle.vy *= -1;
+        particle.x = Math.max(0, Math.min(width, particle.x));
+        particle.y = Math.max(0, Math.min(height, particle.y));
+      });
+
+      context.lineWidth = 0.75;
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const first = particles[i];
+          const second = particles[j];
+          const distance = Math.hypot(first.x - second.x, first.y - second.y);
+          if (distance >= 132) continue;
+          context.strokeStyle = `rgba(255,255,255,${(1 - distance / 132) * 0.42})`;
+          context.beginPath();
+          context.moveTo(first.x, first.y);
+          context.lineTo(second.x, second.y);
+          context.stroke();
+        }
+      }
+
+      if (pointer.active) {
+        particles.forEach((particle) => {
+          const distance = Math.hypot(pointer.x - particle.x, pointer.y - particle.y);
+          if (distance >= 170) return;
+          context.strokeStyle = `rgba(255,255,255,${(1 - distance / 170) * 0.58})`;
+          context.beginPath();
+          context.moveTo(pointer.x, pointer.y);
+          context.lineTo(particle.x, particle.y);
+          context.stroke();
+        });
+      }
+
+      particles.forEach((particle) => {
+        context.beginPath();
+        context.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+        context.fillStyle = 'rgba(255,255,255,0.82)';
+        context.fill();
+      });
+
+      if (pointer.active) {
+        context.beginPath();
+        context.arc(pointer.x, pointer.y, 2.3, 0, Math.PI * 2);
+        context.fillStyle = '#fff';
+        context.fill();
+      }
+
+      if (!reducedMotion) frame = window.requestAnimationFrame(draw);
+    };
+
+    section.addEventListener('pointermove', (event) => {
+      const bounds = section.getBoundingClientRect();
+      pointer.x = event.clientX - bounds.left;
+      pointer.y = event.clientY - bounds.top;
+      pointer.active = true;
+      if (event.pointerType === 'mouse' && crosshairLayer) {
+        const x = Math.max(0, Math.min(bounds.width, pointer.x));
+        const y = Math.max(0, Math.min(bounds.height, pointer.y));
+        crosshairLayer.style.setProperty('--crosshair-x', `${x}px`);
+        crosshairLayer.style.setProperty('--crosshair-y', `${y}px`);
+        section.classList.add('is-crosshair-active');
+        document.body.classList.add('is-crosshair-zone');
+      }
+    });
+    section.addEventListener('pointerleave', () => {
+      pointer.active = false;
+      section.classList.remove('is-crosshair-active');
+      document.body.classList.remove('is-crosshair-zone');
+    });
+    window.addEventListener('resize', resize);
+    resize();
+
+    document.addEventListener('astro:before-swap', () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener('resize', resize);
+    }, { once: true });
+  });
+</script>

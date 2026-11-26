@@ -132,6 +132,14 @@ export const services = [
     alt: '社群視覺服務作品預覽',
   },
   {
+    category: 'sales-page',
+    title: '銷售頁',
+    descriptor: '商品銷售視覺',
+    examples: '商品長頁・活動頁',
+    image: works.filter((work) => work.category === 'sales-page')[1].image,
+    alt: '銷售頁服務作品預覽',
+  },
+  {
     category: 'graphic-design',
     title: '平面設計',
     descriptor: '品牌平面視覺',
@@ -140,11 +148,11 @@ export const services = [
     alt: '平面設計服務作品預覽',
   },
   {
-    category: 'sales-page',
-    title: '銷售頁',
-    descriptor: '商品銷售視覺',
-    examples: '商品長頁・活動頁',
-    image: works.filter((work) => work.category === 'sales-page')[1].image,
-    alt: '銷售頁服務作品預覽',
+    category: 'video',
+    title: '影片製作',
+    descriptor: '品牌影音設計',
+    examples: '品牌短片・影音剪輯・影像後製',
+    image: works.find((work) => work.category === 'video')!.image,
+    alt: '影片製作服務作品預覽',
   },
 ];

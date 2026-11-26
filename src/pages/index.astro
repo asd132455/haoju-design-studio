@@ -1,67 +1,82 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
-import { categories, services } from '../data/works';
+import WorkGallery from '../components/WorkGallery.astro';
+import { categories, services, works } from '../data/works';
 
 const lineUrl = 'https://line.me/ti/p/fJpEGM2oB2';
+const videoWorks = works.filter((work) => work.category === 'video');
 ---
 
 <BaseLayout title="好聚設計｜聚焦品牌視覺 建立質感好形象" description="好聚設計專注於整合平面設計「電商」「社群」與多元視覺設計，提升品牌識別度與特色，建立一致的品牌好形象。">
-  <header class="site-header" id="top">
-    <a class="brand-lockup" href="/" aria-label="好聚設計首頁">
-      <img src="/images/brand/haoju-avatar.jpg" alt="" width="64" height="64" />
-      <span class="brand-lockup__words"><strong>好聚設計</strong><small>HAOJU DESIGN</small></span>
-    </a>
-    <nav class="main-nav" aria-label="主要導覽">
-      <a href="/#home-hero">關於好聚</a>
-      <a href="/works/ecommerce/">作品案例</a>
-      <a class="main-nav__contact" href={lineUrl} target="_blank" rel="noreferrer">LINE 聯絡 <span aria-hidden="true">↗</span></a>
-    </nav>
-  </header>
+  <SiteHeader />
 
   <main>
-    <section class="hello-particles" aria-label="HELLO 文字粒子互動">
+    <section class="hello-particles" id="hello-interactive" aria-label="HELLO 文字粒子互動">
       <h2 class="visually-hidden">HELLO!</h2>
       <canvas class="hello-particles__canvas" data-hello-particles aria-hidden="true"></canvas>
+      <div class="hello-crosshair" data-hello-crosshair aria-hidden="true">
+        <span class="hello-crosshair__line hello-crosshair__line--horizontal"></span>
+        <span class="hello-crosshair__line hello-crosshair__line--vertical"></span>
+        <span class="hello-crosshair__target"></span>
+        <span class="hello-crosshair__readout" data-hello-coordinates></span>
+      </div>
     </section>
 
     <section class="hero" id="home-hero" aria-labelledby="hero-title">
       <div class="hero__copy">
-        <h1 id="hero-title">
-          <span class="hero__title-en">Gather. Design. Inspire.</span>
-          <span class="hero__title-zh">聚焦品牌視覺｜建立質感好形象</span>
+        <h1 id="hero-title" data-scroll-reveal-repeat aria-label="Gather. Design. Inspire. 聚焦品牌視覺｜建立質感好形象">
+          <span class="hero__title-en" aria-hidden="true">
+            <span class="hero__title-en-line" data-flip-heading>Gather. Design.</span>
+            <span class="hero__title-en-line" data-flip-heading>Inspire.</span>
+          </span>
+          <span class="hero__title-zh" data-flip-heading aria-hidden="true">聚焦品牌視覺｜建立質感好形象</span>
         </h1>
-        <p class="hero__description">專注於整合平面設計「電商」「社群」與多元視覺設計，提升品牌識別度與特色，建立一致的品牌好形象。</p>
-        <div class="hero__actions">
-          <a class="button button--dark" href={lineUrl} target="_blank" rel="noreferrer">聊聊品牌服務</a>
-          <a class="text-link" href="/works/ecommerce/">看看作品 <span aria-hidden="true">↓</span></a>
+        <p class="hero__description" data-scroll-reveal-repeat>專注於整合平面設計「電商」「社群」與多元視覺設計，提升品牌識別度與特色，建立一致的品牌好形象。</p>
+        <div class="hero__actions" data-scroll-reveal-repeat>
+          <a class="button button--dark" href="/works/ecommerce/">設計案例</a>
+          <a class="button button--footer" href="/game-ads/japanese-korean/">遊戲類別</a>
         </div>
       </div>
       <div class="hero-art">
         <span class="hero-art__frame">
           <img src="/images/brand/haoju-business-card.jpg" alt="好聚設計品牌名片形象" fetchpriority="high" />
+          <span class="hero-art__foil" aria-hidden="true"></span>
+          <span class="hero-art__shine" aria-hidden="true"></span>
         </span>
       </div>
     </section>
 
     <section class="selected-section section-pad" id="services" aria-label="服務項目與作品">
-      <div class="service-grid">
-        {services.map((service) => {
-          const category = categories.find((item) => item.slug === service.category)!;
-          return (
-            <a class="service-card" data-scroll-reveal href={`/works/${service.category}/`}>
-              <span class="service-card__image"><img src={service.image} alt={service.alt} loading="lazy" decoding="async" /></span>
-              <span class="service-card__body">
-                <span class="service-card__title">{service.title}</span>
-                <span class="service-card__descriptor">{service.descriptor}</span>
-                <span class="service-card__examples">{service.examples}</span>
-              </span>
-              <span class="visually-hidden">{category.description}</span>
-            </a>
-          );
-          })}
+      <div class="service-carousel" data-service-carousel>
+        <div class="service-carousel__viewport">
+          <div class="service-grid" data-carousel-track>
+            {services.map((service) => {
+              const category = categories.find((item) => item.slug === service.category)!;
+              return (
+                <a class:list={['service-card', service.category === 'video' && 'service-card--desktop-only']} href={`/works/${service.category}/`}>
+                  <span class="service-card__image"><img src={service.image} alt={service.alt} loading="lazy" decoding="async" /></span>
+                  <span class="service-card__body">
+                    <span class="service-card__title">{service.title}</span>
+                    <span class="service-card__examples">{service.examples}</span>
+                  </span>
+                  <span class="visually-hidden">{category.description}</span>
+                </a>
+              );
+            })}
+          </div>
+        </div>
+        <div class="selected-more-row">
+          <button class="service-carousel__arrow service-carousel__arrow--prev" type="button" data-carousel-prev aria-label="上一個作品分類">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+          </button>
+          <a class="selected-more" data-scroll-reveal-repeat href="/works/ecommerce/">更多作品</a>
+          <button class="service-carousel__arrow service-carousel__arrow--next" type="button" data-carousel-next aria-label="下一個作品分類">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+          </button>
+        </div>
       </div>
-      <a class="selected-more" href="/works/ecommerce/">更多作品</a>
     </section>
 
     <section class="about-section section-pad" id="about" aria-labelledby="about-title">
@@ -69,34 +84,112 @@ const lineUrl = 'https://line.me/ti/p/fJpEGM2oB2';
         <figure class="about-section__portrait" data-scroll-reveal>
           <img src="/images/brand/designer-portrait.png" alt="好聚設計設計師 hao 的個人形象照" loading="lazy" decoding="async" />
         </figure>
-        <div class="about-section__intro" data-scroll-reveal>
-          <h2 id="about-title">Hi，我是視覺設計師 Hao</h2>
+        <div class="about-section__intro" data-scroll-reveal-repeat>
+          <h2 id="about-title">Hi，我是視覺設計師 Geng Hao</h2>
           <p>自 2016 年起投入視覺設計與美術相關工作，累積近 10 年設計領域經驗。從早期的插畫創作、文創商品與遊戲視覺美術，逐步延伸至電商視覺、社群行銷、品牌設計及 AI 輔助視覺設計應用。擅長整合不同媒介與工具，將創意轉化為兼具美感、辨識度與商業價值的設計。</p>
         </div>
       </div>
       <div class="about-section__highlights">
         <article class="about-highlight" data-scroll-reveal>
-          <h3>擁有 10 年設計經驗</h3>
-          <p>涵蓋插畫、文創商品、遊戲美術、平面設計、電商廣告、品牌視覺及影像製作，持續探索不同領域的創作可能。</p>
+          <h3 data-scroll-reveal-repeat>擁有 10 年設計經驗</h3>
+          <p data-scroll-reveal-repeat>涵蓋插畫、文創商品、遊戲美術、平面設計、電商廣告、品牌視覺及影像製作，持續探索不同領域的創作可能。</p>
         </article>
         <article class="about-highlight" data-scroll-reveal>
-          <h3>多元產業專案經歷</h3>
-          <p>經歷包括電商、遊戲產業、科技教育、美食旅遊、寵物及醫美醫療等產業合作，能依據不同品牌定位與市場需求，規劃合適的視覺呈現。</p>
+          <h3 data-scroll-reveal-repeat>多元產業專案經歷</h3>
+          <p data-scroll-reveal-repeat>經歷包括電商、遊戲產業、科技教育、美食旅遊、寵物及醫美醫療等產業合作，能依據不同品牌定位與市場需求，規劃合適的視覺呈現。</p>
         </article>
         <article class="about-highlight" data-scroll-reveal>
-          <h3>跨領域視覺整合能力</h3>
-          <p>涵蓋品牌形象、社群貼文、平面廣告、Logo、型錄DM、網站視覺、插畫、文創商品、平面印刷物、商品攝影修圖，結合短影音剪輯後製，與 AI 輔助美術視覺創作，持續拓展視覺設計的表現。</p>
+          <h3 data-scroll-reveal-repeat>跨領域視覺整合能力</h3>
+          <p data-scroll-reveal-repeat>涵蓋品牌形象、社群貼文、平面廣告、Logo、型錄DM、網站視覺、插畫、文創商品、平面印刷物、商品攝影修圖，結合短影音剪輯後製，與 AI 輔助美術視覺創作，持續拓展視覺設計的表現。</p>
         </article>
       </div>
       <aside class="about-contact" aria-label="聯絡好聚設計">
-        <p data-scroll-reveal>為每一個品牌打造方案規劃，提供優質的設計服務。</p>
-        <a data-scroll-reveal href={lineUrl} target="_blank" rel="noreferrer">找Hao聊聊</a>
+        <p data-scroll-reveal-repeat>為每一個品牌打造方案規劃，提供優質的設計服務。</p>
+        <a data-scroll-reveal-repeat href={lineUrl} target="_blank" rel="noreferrer">找我聊聊</a>
       </aside>
-      <a class="about-section__back-top" data-scroll-reveal href="/#home-hero">- BACK TO TOP -</a>
+      {videoWorks.length > 0 && (
+        <section class="about-video" aria-label="影片作品">
+          <WorkGallery items={videoWorks} />
+        </section>
+      )}
+      <a class="about-section__back-top" data-scroll-reveal-repeat href="/#home-hero">- BACK TO TOP -</a>
     </section>
   </main>
 
   <script>
+    import { gsap } from 'gsap';
+
+    const crosshairSections = document.querySelectorAll<HTMLElement>('.hello-particles');
+    const fineCrosshairPointer = window.matchMedia('(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)');
+
+    const heroCard = document.querySelector<HTMLElement>('.hero-art');
+    const heroCardFrame = heroCard?.querySelector<HTMLElement>('.hero-art__frame');
+    if (heroCard && heroCardFrame && fineCrosshairPointer.matches) {
+      const updateCardLight = (event: PointerEvent) => {
+        if (event.pointerType !== 'mouse') return;
+        const bounds = heroCardFrame.getBoundingClientRect();
+        const x = Math.max(0, Math.min(1, (event.clientX - bounds.left) / bounds.width));
+        const y = Math.max(0, Math.min(1, (event.clientY - bounds.top) / bounds.height));
+        const rotateX = (0.5 - y) * 26;
+        const rotateY = (x - 0.5) * 26;
+        const foilStrength = Math.min(1, Math.hypot(rotateX, rotateY) / 18);
+
+        heroCard.classList.remove('is-resetting');
+        heroCard.style.setProperty('--rx', `${rotateX}deg`);
+        heroCard.style.setProperty('--ry', `${rotateY}deg`);
+        heroCard.style.setProperty('--px', `${x * 100}%`);
+        heroCard.style.setProperty('--py', `${y * 100}%`);
+        heroCard.style.setProperty('--foil-opacity', `${0.04 + foilStrength * 0.34}`);
+        heroCard.classList.add('is-tilting');
+      };
+
+      const resetCardLight = () => {
+        heroCard.classList.add('is-resetting');
+        heroCard.classList.remove('is-tilting');
+        heroCard.style.setProperty('--rx', '0deg');
+        heroCard.style.setProperty('--ry', '0deg');
+        heroCard.style.setProperty('--px', '50%');
+        heroCard.style.setProperty('--py', '50%');
+        heroCard.style.setProperty('--foil-opacity', '0');
+      };
+
+      heroCard.addEventListener('pointermove', updateCardLight, { passive: true });
+      heroCard.addEventListener('pointerleave', resetCardLight);
+      heroCard.addEventListener('pointercancel', resetCardLight);
+    }
+
+    if (fineCrosshairPointer.matches) {
+      crosshairSections.forEach((section) => {
+        const crosshairLayer = section.querySelector<HTMLElement>('[data-hello-crosshair]');
+        const coordinateReadout = crosshairLayer?.querySelector<HTMLElement>('[data-hello-coordinates]');
+        if (!crosshairLayer || !coordinateReadout) return;
+
+        section.addEventListener('pointermove', (event) => {
+          if (event.pointerType !== 'mouse') return;
+          const bounds = section.getBoundingClientRect();
+          const x = Math.max(0, Math.min(bounds.width, event.clientX - bounds.left));
+          const y = Math.max(0, Math.min(bounds.height, event.clientY - bounds.top));
+          const xCoordinate = Math.round((x / bounds.width) * 1920).toString().padStart(4, '0');
+          const yCoordinate = Math.round((y / bounds.height) * 1080).toString().padStart(4, '0');
+          const labelWidth = coordinateReadout.offsetWidth;
+          const labelHeight = coordinateReadout.offsetHeight;
+          const labelX = Math.max(10, Math.min(bounds.width - labelWidth - 10, x + 18));
+          const labelY = Math.max(10, Math.min(bounds.height - labelHeight - 10, y + 18));
+
+          crosshairLayer.style.setProperty('--crosshair-x', `${x}px`);
+          crosshairLayer.style.setProperty('--crosshair-y', `${y}px`);
+          coordinateReadout.style.transform = `translate3d(${labelX}px, ${labelY}px, 0)`;
+          coordinateReadout.textContent = `X ${xCoordinate}  Y ${yCoordinate}`;
+          section.classList.add('is-crosshair-active');
+          document.body.classList.add('is-crosshair-zone');
+        }, { passive: true });
+        section.addEventListener('pointerleave', () => {
+          section.classList.remove('is-crosshair-active');
+          document.body.classList.remove('is-crosshair-zone');
+        });
+      });
+    }
+
     const particleCanvas = document.querySelector<HTMLCanvasElement>('[data-hello-particles]');
     const particleSection = particleCanvas?.closest<HTMLElement>('.hello-particles');
     const reducedParticleMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -250,6 +343,128 @@ const lineUrl = 'https://line.me/ti/p/fJpEGM2oB2';
       document.fonts?.ready.then(rebuildParticles);
       rebuildParticles();
     }
+
+    document.querySelectorAll<HTMLElement>('[data-service-carousel]').forEach((carousel) => {
+      const track = carousel.querySelector<HTMLElement>('[data-carousel-track]');
+      const previous = carousel.querySelector<HTMLButtonElement>('[data-carousel-prev]');
+      const next = carousel.querySelector<HTMLButtonElement>('[data-carousel-next]');
+      if (!track || !previous || !next) return;
+
+      const originals = Array.from(track.children).filter((card): card is HTMLElement => card instanceof HTMLElement && card.classList.contains('service-card'));
+      if (originals.length < 5) return;
+
+      const desktopCarousel = window.matchMedia('(min-width: 961px)');
+      let isInitialized = false;
+      let currentIndex = 0;
+      let loopCount = 0;
+      let queuedMoves = 0;
+      let isMoving = false;
+
+      const cloneCard = (card: HTMLElement) => {
+        const clone = card.cloneNode(true) as HTMLElement;
+        clone.dataset.carouselClone = 'true';
+        clone.setAttribute('aria-hidden', 'true');
+        clone.tabIndex = -1;
+        clone.querySelectorAll<HTMLElement>('[data-scroll-reveal-repeat], .scroll-reveal, .is-visible, .is-resetting').forEach((item) => {
+          item.removeAttribute('data-scroll-reveal-repeat');
+          item.classList.remove('scroll-reveal', 'is-visible', 'is-resetting');
+        });
+        return clone;
+      };
+
+      const moveTrack = () => {
+        if (!isInitialized) return;
+        const firstCard = track.children[0] as HTMLElement;
+        const cardWidth = firstCard.getBoundingClientRect().width;
+        const gap = Number.parseFloat(getComputedStyle(track).columnGap) || 0;
+        track.style.transform = `translate3d(${-currentIndex * (cardWidth + gap)}px, 0, 0)`;
+      };
+
+      const normalizeLoopPosition = () => {
+        if (!isInitialized) return;
+        const firstRealIndex = loopCount;
+        const afterRealIndex = firstRealIndex + originals.length;
+        let normalizedIndex = currentIndex;
+        if (currentIndex >= afterRealIndex) normalizedIndex = firstRealIndex + ((currentIndex - firstRealIndex) % originals.length);
+        else if (currentIndex < firstRealIndex) normalizedIndex = firstRealIndex + ((currentIndex - firstRealIndex) % originals.length + originals.length) % originals.length;
+        if (normalizedIndex === currentIndex) return;
+
+        currentIndex = normalizedIndex;
+        track.style.transition = 'none';
+        moveTrack();
+        void track.offsetWidth;
+        track.style.transition = '';
+      };
+
+      const stepCarousel = (direction: number) => {
+        if (!isInitialized) return;
+        if (isMoving) {
+          queuedMoves += direction;
+          return;
+        }
+        currentIndex += direction;
+        isMoving = true;
+        moveTrack();
+      };
+
+      track.addEventListener('transitionend', (event) => {
+        if (event.target !== track || event.propertyName !== 'transform' || !isMoving) return;
+        normalizeLoopPosition();
+        isMoving = false;
+        if (queuedMoves !== 0) {
+          const direction = Math.sign(queuedMoves);
+          queuedMoves -= direction;
+          stepCarousel(direction);
+        }
+      });
+      previous.addEventListener('click', () => stepCarousel(-1));
+      next.addEventListener('click', () => stepCarousel(1));
+
+      const setCarouselMode = () => {
+        if (desktopCarousel.matches && !isInitialized) {
+          loopCount = Math.min(4, originals.length - 1);
+          track.prepend(...originals.slice(-loopCount).map(cloneCard));
+          track.append(...originals.slice(0, loopCount).map(cloneCard));
+          currentIndex = loopCount;
+          isInitialized = true;
+          track.style.transition = 'none';
+          moveTrack();
+          void track.offsetWidth;
+          track.style.transition = '';
+        } else if (!desktopCarousel.matches && isInitialized) {
+          track.querySelectorAll('[data-carousel-clone]').forEach((clone) => clone.remove());
+          track.style.transform = '';
+          isInitialized = false;
+        }
+      };
+
+      desktopCarousel.addEventListener('change', setCarouselMode);
+      window.addEventListener('resize', () => {
+        if (!isInitialized) return;
+        isMoving = false;
+        queuedMoves = 0;
+        track.style.transition = 'none';
+        moveTrack();
+        void track.offsetWidth;
+        track.style.transition = '';
+      }, { passive: true });
+      setCarouselMode();
+    });
+
+    const motionAllowed = window.matchMedia('(prefers-reduced-motion: no-preference)').matches;
+
+    const moreWorksButton = document.querySelector<HTMLAnchorElement>('.selected-more');
+    if (moreWorksButton && motionAllowed) {
+      const replayJelly = () => {
+        moreWorksButton.classList.remove('is-jelly');
+        void moreWorksButton.offsetWidth;
+        moreWorksButton.classList.add('is-jelly');
+      };
+      moreWorksButton.addEventListener('pointerenter', replayJelly);
+      moreWorksButton.addEventListener('click', replayJelly);
+      moreWorksButton.addEventListener('animationend', () => moreWorksButton.classList.remove('is-jelly'));
+    }
+
   </script>
 
   <SiteFooter />

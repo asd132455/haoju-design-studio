@@ -12,6 +12,8 @@ const { active } = Astro.props;
   {categories.map((category) => (
     <a
       class:list={["category-pill", { "is-active": active === category.slug }]}
+      data-work-category-link
+      data-scroll-reveal-repeat
       href={`/works/${category.slug}/`}
       aria-current={active === category.slug ? 'page' : undefined}
     >
@@ -19,3 +21,51 @@ const { active } = Astro.props;
     </a>
   ))}
 </nav>
+
+<script>
+  const gallery = document.querySelector<HTMLElement>('[data-work-gallery]');
+  const categoryLinks = [...document.querySelectorAll<HTMLAnchorElement>('[data-work-category-link]')];
+  const emptyState = gallery?.querySelector<HTMLElement>('[data-work-gallery-empty]');
+
+  if (gallery && categoryLinks.length) {
+    const switchCategory = (slug: string, updateAddressBar: boolean) => {
+      const selectedLink = categoryLinks.find((link) => new URL(link.href).pathname.includes(`/works/${slug}/`));
+      if (!selectedLink) return;
+
+      const cards = [...gallery.querySelectorAll<HTMLElement>('[data-work-category]')];
+      let visibleCount = 0;
+      cards.forEach((card) => {
+        const isVisible = card.dataset.workCategory === slug;
+        card.hidden = !isVisible;
+        if (isVisible) visibleCount++;
+      });
+      if (emptyState) emptyState.hidden = visibleCount > 0;
+      gallery.setAttribute('aria-label', `${selectedLink.textContent?.trim() ?? ''}作品`);
+
+      categoryLinks.forEach((link) => {
+        const isActive = link === selectedLink;
+        link.classList.toggle('is-active', isActive);
+        if (isActive) link.setAttribute('aria-current', 'page');
+        else link.removeAttribute('aria-current');
+      });
+
+      if (updateAddressBar && window.location.pathname !== selectedLink.pathname) {
+        window.history.pushState({ workCategory: slug }, '', selectedLink.pathname);
+      }
+    };
+
+    categoryLinks.forEach((link) => {
+      link.addEventListener('click', (event) => {
+        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        event.preventDefault();
+        const slug = new URL(link.href).pathname.split('/').filter(Boolean).at(-1);
+        if (slug) switchCategory(slug, true);
+      });
+    });
+
+    window.addEventListener('popstate', () => {
+      const slug = window.location.pathname.split('/').filter(Boolean).at(-1);
+      if (slug) switchCategory(slug, false);
+    });
+  }
+</script>

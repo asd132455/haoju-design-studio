@@ -1,0 +1,19 @@
+---
+const lineUrl = 'https://line.me/ti/p/fJpEGM2oB2';
+---
+
+<aside class="about-contact" aria-label="聯絡好聚設計">
+  <p data-scroll-reveal-repeat>為每一個品牌打造方案規劃，提供優質的設計服務。</p>
+  <a data-scroll-reveal-repeat href={lineUrl} target="_blank" rel="noreferrer">找我聊聊</a>
+</aside>
+<a class="about-section__back-top" data-scroll-reveal-repeat href="#top">- BACK TO TOP -</a>
+
+<script>
+  document.querySelectorAll<HTMLAnchorElement>('.about-section__back-top[href="#top"]').forEach((link) => {
+    link.addEventListener('click', (event) => {
+      event.preventDefault();
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+    });
+  });
+</script>

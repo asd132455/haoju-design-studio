@@ -1,0 +1,13 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { gameAdCategories } from '../../data/game-ads';
+
+const defaultCategory = gameAdCategories[0];
+---
+
+<BaseLayout title="遊戲廣告｜好聚設計" description="瀏覽好聚設計的遊戲廣告作品。">
+  <script>
+    window.location.replace('/game-ads/japanese-korean/');
+  </script>
+  <p><a href={`/game-ads/${defaultCategory.slug}/`}>前往日韓遊戲作品</a></p>
+</BaseLayout>

@@ -1,0 +1,34 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import SiteFooter from '../../components/SiteFooter.astro';
+import GameAdCategoryNav from '../../components/GameAdCategoryNav.astro';
+import GravityTagPile from '../../components/GravityTagPile.astro';
+import WorkGallery from '../../components/WorkGallery.astro';
+import ContactCTA from '../../components/ContactCTA.astro';
+import { gameAdCategories, gameAdWorks } from '../../data/game-ads';
+
+export function getStaticPaths() {
+  return gameAdCategories.map((category) => ({ params: { category: category.slug }, props: { category } }));
+}
+
+const { category } = Astro.props;
+---
+
+<BaseLayout title={`${category.title}作品｜遊戲廣告｜好聚設計`} description={`瀏覽好聚設計的${category.title}作品。`}>
+  <SiteHeader />
+  <main class="portfolio-page">
+    <GravityTagPile />
+    <section class="portfolio-heading portfolio-heading--category">
+      <h1 data-scroll-reveal-repeat>{category.title}<span>，好好聚焦。</span></h1>
+      <p data-scroll-reveal-repeat>依遊戲類型與素材形式，整理廣告視覺作品。</p>
+    </section>
+    <GameAdCategoryNav active={category.slug} />
+    <section class="portfolio-gallery" data-game-gallery data-active-category={category.slug} aria-label={`${category.title}作品`}>
+      <WorkGallery items={gameAdWorks} activeCategory={category.slug} />
+      <p class="portfolio-empty" data-game-gallery-empty hidden>此分類作品整理中，敬請期待。</p>
+    </section>
+    <ContactCTA />
+  </main>
+  <SiteFooter />
+</BaseLayout>

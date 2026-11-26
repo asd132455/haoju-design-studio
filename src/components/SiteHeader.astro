@@ -8,8 +8,21 @@ const lineUrl = 'https://line.me/ti/p/fJpEGM2oB2';
     <span class="brand-lockup__words"><strong>好聚設計</strong><small>HAOJU DESIGN</small></span>
   </a>
   <nav class="main-nav" aria-label="主要導覽">
-    <a href="/#home-hero">關於好聚</a>
-    <a href="/works/ecommerce/">作品案例</a>
+    <a href="/#hello-interactive" data-about-link>關於好聚</a>
+    <a href="/works/ecommerce/">設計作品</a>
+    <a href="/game-ads/japanese-korean/">遊戲廣告</a>
     <a class="main-nav__contact" href={lineUrl} target="_blank" rel="noreferrer">LINE 聯絡 <span aria-hidden="true">↗</span></a>
   </nav>
 </header>
+
+<script>
+  const aboutLink = document.querySelector<HTMLAnchorElement>('[data-about-link]');
+
+  aboutLink?.addEventListener('click', (event) => {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    if (window.matchMedia('(max-width: 900px)').matches) {
+      event.preventDefault();
+      window.location.href = '/#home-hero';
+    }
+  });
+</script>

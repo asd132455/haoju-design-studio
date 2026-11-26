@@ -1,0 +1,72 @@
+---
+import { gameAdCategories } from '../data/game-ads';
+
+interface Props {
+  active?: string;
+}
+
+const { active } = Astro.props;
+---
+
+<nav class="category-nav category-nav--game-ads" aria-label="遊戲廣告分類">
+  {gameAdCategories.map((category) => (
+    <a
+      class:list={["category-pill", { "is-active": active === category.slug }]}
+      data-game-ad-category
+      data-scroll-reveal-repeat
+      href={`/game-ads/${category.slug}/`}
+      aria-current={active === category.slug ? 'page' : undefined}
+    >
+      {category.title}
+    </a>
+  ))}
+</nav>
+
+<script>
+  const gallery = document.querySelector<HTMLElement>('[data-game-gallery]');
+  const categoryLinks = [...document.querySelectorAll<HTMLAnchorElement>('[data-game-ad-category]')];
+  const emptyState = gallery?.querySelector<HTMLElement>('[data-game-gallery-empty]');
+
+  if (gallery && categoryLinks.length) {
+    const switchCategory = (slug: string, updateAddressBar: boolean) => {
+      const selectedLink = categoryLinks.find((link) => new URL(link.href).pathname.includes(`/game-ads/${slug}/`));
+      if (!selectedLink) return;
+
+      gallery.dataset.activeCategory = slug;
+      gallery.setAttribute('aria-label', `${selectedLink.textContent?.trim() ?? ''}作品`);
+      const cards = [...gallery.querySelectorAll<HTMLElement>('[data-work-category]')];
+      let visibleCount = 0;
+      cards.forEach((card) => {
+        const isVisible = card.dataset.workCategory === slug;
+        card.hidden = !isVisible;
+        if (isVisible) visibleCount++;
+      });
+      if (emptyState) emptyState.hidden = visibleCount > 0;
+
+      categoryLinks.forEach((link) => {
+        const isActive = link === selectedLink;
+        link.classList.toggle('is-active', isActive);
+        if (isActive) link.setAttribute('aria-current', 'page');
+        else link.removeAttribute('aria-current');
+      });
+
+      if (updateAddressBar && window.location.pathname !== selectedLink.pathname) {
+        window.history.pushState({ gameAdCategory: slug }, '', selectedLink.pathname);
+      }
+    };
+
+    categoryLinks.forEach((link) => {
+      link.addEventListener('click', (event) => {
+        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        event.preventDefault();
+        const slug = new URL(link.href).pathname.split('/').filter(Boolean).at(-1);
+        if (slug) switchCategory(slug, true);
+      });
+    });
+
+    window.addEventListener('popstate', () => {
+      const slug = window.location.pathname.split('/').filter(Boolean).at(-1);
+      if (slug) switchCategory(slug, false);
+    });
+  }
+</script>

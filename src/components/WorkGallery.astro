@@ -3,14 +3,15 @@ import type { WorkItem } from '../data/works';
 
 interface Props {
   items: WorkItem[];
+  activeCategory?: string;
 }
 
-const { items } = Astro.props;
+const { items, activeCategory } = Astro.props;
 ---
 
 <div class="work-grid">
   {items.map((work, index) => (
-    <article class="work-card" data-scroll-reveal data-scroll-reveal-repeat>
+    <article class="work-card" data-scroll-reveal-repeat data-work-category={work.category} hidden={activeCategory ? work.category !== activeCategory : undefined}>
       <button
         class="work-card__open"
         type="button"
@@ -48,7 +49,9 @@ const { items } = Astro.props;
   const previousButton = dialog?.querySelector<HTMLButtonElement>('[data-lightbox-prev]');
   const nextButton = dialog?.querySelector<HTMLButtonElement>('[data-lightbox-next]');
   const imageWrap = dialog?.querySelector<HTMLElement>('.lightbox__image-wrap');
-  const cards = [...document.querySelectorAll<HTMLButtonElement>('[data-lightbox-open]')];
+  const studioCursor = document.querySelector<HTMLElement>('.studio-cursor');
+  const allCards = [...document.querySelectorAll<HTMLButtonElement>('[data-lightbox-open]')];
+  let cards = [...allCards];
   let currentIndex = 0;
   let scale = 1;
   const pointers = new Map<number, { x: number; y: number }>();
@@ -77,10 +80,18 @@ const { items } = Astro.props;
   };
 
   if (dialog && image && closeButton && previousButton && nextButton && imageWrap) {
-    cards.forEach((button, index) => {
+    allCards.forEach((button) => {
       button.addEventListener('click', () => {
+        cards = allCards.filter((card) => !card.closest<HTMLElement>('[data-work-category]')?.hidden);
+        const index = cards.indexOf(button);
+        if (index < 0) return;
         showImage(index);
         dialog.showModal();
+        if (studioCursor) {
+          dialog.append(studioCursor);
+          studioCursor.classList.add('is-in-lightbox');
+          dialog.classList.add('has-studio-cursor');
+        }
         closeButton.focus();
       });
     });
@@ -97,6 +108,11 @@ const { items } = Astro.props;
       if (!clickedInteractiveContent) dialog.close();
     });
     dialog.addEventListener('close', () => {
+      if (studioCursor) {
+        document.body.append(studioCursor);
+        studioCursor.classList.remove('is-in-lightbox');
+        dialog.classList.remove('has-studio-cursor');
+      }
       image.src = '';
       resetScale();
     });

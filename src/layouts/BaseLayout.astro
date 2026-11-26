@@ -28,20 +28,133 @@ import '../styles/global.css';
     <title>{title}</title>
   </head>
   <body>
+    <div class="studio-cursor" aria-hidden="true">
+      <span class="studio-cursor__trail" aria-hidden="true">
+        {Array.from({ length: 8 }, (_, index) => <i style={`--trail-index:${index}`} />)}
+      </span>
+      <svg viewBox="0 0 32 32" focusable="false">
+        <path class="studio-cursor__pointer" d="M10 10.2 25.1 17c1.4.6 1.3 2.6-.2 3.1l-5.5 1.8-2.8 5.1c-.8 1.4-2.8 1.1-3.2-.4L8.2 12.3c-.4-1.5.5-2.7 1.8-2.1Z" />
+      </svg>
+    </div>
     <slot />
     <script>
-      const revealTargets = document.querySelectorAll<HTMLElement>('[data-scroll-reveal]');
+      const flipHeadings = document.querySelectorAll<HTMLElement>('[data-flip-heading]');
+      const flipMotionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+      const canAnimateChars = typeof HTMLElement.prototype.animate === 'function';
+      if (!flipMotionPreference.matches && canAnimateChars) {
+        const staggerMs = 70;
+        const flipAnimations: Animation[] = [];
+
+        const flipGroups = [...flipHeadings].map((heading) => {
+          const label = heading.textContent?.trim() ?? '';
+          const characters = Array.from(label).map((character) => {
+            const span = document.createElement('span');
+            span.className = 'hero__flip-char';
+            span.setAttribute('aria-hidden', 'true');
+            span.textContent = character === ' ' ? '\u00a0' : character;
+            return span;
+          });
+          heading.setAttribute('aria-label', label);
+          heading.replaceChildren(...characters);
+          return characters;
+        }).filter((characters) => characters.length > 0);
+
+        flipGroups.forEach((characters) => characters.forEach((character, index) => {
+          const animation = character.animate([
+            { transform: 'rotateX(-92deg) translateZ(-14px)', opacity: 0 },
+            { transform: 'rotateX(7deg) translateZ(2px)', opacity: 1, easing: 'cubic-bezier(.34, 1.56, .64, 1)', offset: .82 },
+            { transform: 'rotateX(0deg) translateZ(0)', opacity: 1 },
+          ], {
+            duration: 620,
+            delay: index * staggerMs,
+            fill: 'both',
+          });
+          flipAnimations.push(animation);
+        }));
+
+        document.addEventListener('visibilitychange', () => {
+          flipAnimations.forEach((animation) => document.hidden ? animation.pause() : animation.play());
+        });
+        flipMotionPreference.addEventListener('change', () => {
+          if (flipMotionPreference.matches) {
+            flipAnimations.forEach((animation) => animation.cancel());
+          }
+        });
+      }
+
+      const cursor = document.querySelector<HTMLElement>('.studio-cursor');
+      const cursorTrail = cursor?.querySelector<HTMLElement>('.studio-cursor__trail');
+      const trailDots = cursorTrail ? Array.from(cursorTrail.querySelectorAll<HTMLElement>('i')) : [];
+      const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+      if (cursor && finePointer.matches) {
+        const trailMotionAllowed = window.matchMedia('(prefers-reduced-motion: no-preference)').matches;
+        const trailPositions = trailDots.map(() => ({ x: 0, y: 0 }));
+        const trailDotSizes = trailDots.map((dot) => dot.offsetWidth);
+        let cursorPoint = { x: 0, y: 0 };
+        let trailFrame = 0;
+        let lastPointerMove = 0;
+        let trailFadeTimer = 0;
+
+        const animateTrail = () => {
+          let hasLag = false;
+          trailPositions.forEach((point, index) => {
+            const target = index === 0 ? cursorPoint : trailPositions[index - 1];
+            point.x += (target.x - point.x) * .34;
+            point.y += (target.y - point.y) * .34;
+            const size = trailDotSizes[index] || 5;
+            trailDots[index].style.transform = `translate3d(${point.x - cursorPoint.x - size / 2}px, ${point.y - cursorPoint.y - size / 2}px, 0)`;
+            if (Math.abs(target.x - point.x) + Math.abs(target.y - point.y) > .8) hasLag = true;
+          });
+
+          if (hasLag || performance.now() - lastPointerMove < 50) {
+            trailFrame = requestAnimationFrame(animateTrail);
+          } else {
+            trailFrame = 0;
+            window.clearTimeout(trailFadeTimer);
+            trailFadeTimer = window.setTimeout(() => cursorTrail?.classList.remove('is-visible'), 240);
+          }
+        };
+
+        window.addEventListener('pointermove', (event) => {
+          const lightbox = cursor.closest<HTMLDialogElement>('[data-lightbox]');
+          const bounds = lightbox?.getBoundingClientRect();
+          const x = bounds ? event.clientX - bounds.left : event.clientX;
+          const y = bounds ? event.clientY - bounds.top : event.clientY;
+          cursorPoint = { x, y };
+          cursor.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+          document.body.classList.add('has-studio-cursor');
+
+          if (event.pointerType === 'mouse' && trailMotionAllowed && cursorTrail && trailDots.length) {
+            lastPointerMove = performance.now();
+            cursorTrail.classList.add('is-visible');
+            window.clearTimeout(trailFadeTimer);
+            if (!trailFrame) trailFrame = requestAnimationFrame(animateTrail);
+          }
+        }, { passive: true });
+        document.addEventListener('pointerover', (event) => {
+          const target = event.target;
+          const isInteractive = target instanceof Element && Boolean(target.closest('a, button, [role="button"], summary, label'));
+          cursor.classList.toggle('is-interactive', isInteractive);
+        });
+        document.addEventListener('pointerout', (event) => {
+          const nextTarget = event.relatedTarget;
+          cursor.classList.toggle('is-interactive', nextTarget instanceof Element && Boolean(nextTarget.closest('a, button, [role="button"], summary, label')));
+          if (!nextTarget) document.body.classList.remove('has-studio-cursor');
+        });
+      }
+
+      const revealTargets = document.querySelectorAll<HTMLElement>('[data-scroll-reveal], [data-scroll-reveal-repeat]');
       const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const repeatRevealOnDesktop = window.matchMedia('(min-width: 641px)').matches;
       if (!prefersReducedMotion && 'IntersectionObserver' in window) {
         const revealObserver = new IntersectionObserver((entries, observer) => {
           entries.forEach((entry) => {
-            const repeat = repeatRevealOnDesktop && entry.target.hasAttribute('data-scroll-reveal-repeat');
-            if (entry.isIntersecting && entry.intersectionRatio >= (repeat ? 0.01 : 0.12)) {
+            if (entry.isIntersecting && entry.intersectionRatio >= 0.12) {
               entry.target.classList.add('is-visible');
-              if (!repeat) observer.unobserve(entry.target);
-            } else if (!entry.isIntersecting && repeat) {
+              if (!entry.target.hasAttribute('data-scroll-reveal-repeat')) observer.unobserve(entry.target);
+            } else if (entry.target.hasAttribute('data-scroll-reveal-repeat') && entry.target.classList.contains('is-visible')) {
+              entry.target.classList.add('is-resetting');
               entry.target.classList.remove('is-visible');
+              requestAnimationFrame(() => requestAnimationFrame(() => entry.target.classList.remove('is-resetting')));
             }
           });
         }, { threshold: [0.01, 0.12], rootMargin: '0px' });
