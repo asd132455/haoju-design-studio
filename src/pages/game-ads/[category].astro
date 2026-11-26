@@ -20,8 +20,8 @@ const { category } = Astro.props;
   <main class="portfolio-page">
     <GravityTagPile />
     <section class="portfolio-heading portfolio-heading--category">
-      <h1 data-scroll-reveal-repeat>{category.title}<span>，好好聚焦。</span></h1>
-      <p data-scroll-reveal-repeat>依遊戲類型與素材形式，整理廣告視覺作品。</p>
+      <h1 data-scroll-reveal-repeat>遊戲廣告<span>｜強調視覺風格呈現</span></h1>
+      <p data-scroll-reveal-repeat>專為遊戲打造吸睛、創意廣告、優化整體光影</p>
     </section>
     <GameAdCategoryNav active={category.slug} />
     <section class="portfolio-gallery" data-game-gallery data-active-category={category.slug} aria-label={`${category.title}作品`}>

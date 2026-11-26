@@ -24,6 +24,7 @@ import { gameAdCategories } from '../data/game-ads';
     angle: number;
     renderAngle: number;
     spin: number;
+    squash: number;
     born: number;
     dragging: boolean;
   };
@@ -72,20 +73,30 @@ import { gameAdCategories } from '../data/game-ads';
       context.font = `500 ${tagFontSize()}px "Noto Sans TC", sans-serif`;
       tags.length = 0;
       const spawnStart = performance.now() / 1000;
-      measure().forEach((item, index) => {
-        const x = Math.max(item.width / 2 + 5, Math.random() * (width - item.width - 10) + item.width / 2);
-        const columns = Math.max(2, Math.floor(width / 150));
-        const column = index % columns;
+      const items = measure();
+      const columns = Math.max(2, Math.floor(width / 185));
+      const lanes = Array.from({ length: columns }, (_, lane) => lane);
+      for (let i = lanes.length - 1; i > 0; i--) {
+        const swap = Math.floor(Math.random() * (i + 1));
+        [lanes[i], lanes[swap]] = [lanes[swap], lanes[i]];
+      }
+      items.forEach((item, index) => {
+        const lane = lanes[index % columns];
+        const laneWidth = width / columns;
+        const laneCenter = (lane + 0.5) * laneWidth;
+        const jitter = (Math.random() - 0.5) * laneWidth * 0.48;
+        const x = Math.max(item.width / 2 + 5, Math.min(width - item.width / 2 - 5, laneCenter + jitter));
         const initialAngle = reduceMotion ? 0 : (Math.random() - .5) * .18;
         tags.push({
           ...item,
-          x: reduceMotion ? (column + .5) * width / columns : x,
+          x: reduceMotion ? laneCenter : x,
           y: reduceMotion ? 54 + Math.floor(index / columns) * 58 : -item.height - index * 42,
           vx: 0,
           vy: reduceMotion ? 0 : 15 + Math.random() * 40,
           angle: initialAngle,
           renderAngle: initialAngle,
           spin: reduceMotion ? 0 : (Math.random() - .5) * .7,
+          squash: 0,
           born: spawnStart + index * .13,
           dragging: false,
         });
@@ -111,6 +122,7 @@ import { gameAdCategories } from '../data/game-ads';
         context.save();
         context.translate(tag.x, tag.y);
         context.rotate(tag.renderAngle);
+        context.scale(1 + tag.squash, 1 - tag.squash * .72);
         pillPath(-tag.width / 2, -tag.height / 2, tag.width, tag.height);
         const style = index % 3;
         const gradient = context.createLinearGradient(0, -tag.height / 2, 0, tag.height / 2);
@@ -154,6 +166,7 @@ import { gameAdCategories } from '../data/game-ads';
         tag.x += tag.vx * dt;
         tag.y += tag.vy * dt;
         tag.angle += tag.spin * dt;
+        tag.squash *= Math.exp(-10 * dt);
         const angleDifference = Math.atan2(Math.sin(tag.angle - tag.renderAngle), Math.cos(tag.angle - tag.renderAngle));
         tag.renderAngle += angleDifference * (1 - Math.exp(-20 * dt));
         tag.vx *= Math.pow(.994, dt * 60);
@@ -165,8 +178,10 @@ import { gameAdCategories } from '../data/game-ads';
         if (tag.x > width - halfWidth) { tag.x = width - halfWidth; tag.vx = -Math.abs(tag.vx) * .42; tag.spin *= -.72; }
         if (tag.y > height - halfHeight) {
           tag.y = height - halfHeight;
-          tag.vy = tag.vy > 85 ? -tag.vy * .25 : 0;
-          tag.vx *= .82;
+          const impactSpeed = Math.abs(tag.vy);
+          tag.squash = Math.min(.2, impactSpeed / 3500);
+          tag.vy = impactSpeed > 45 ? -impactSpeed * .62 : 0;
+          tag.vx *= .9;
           tag.angle *= Math.exp(-4.5 * dt);
           tag.spin *= Math.exp(-5.2 * dt);
         } else if (Math.abs(tag.vx) < 120 && Math.abs(tag.vy) < 85) {
@@ -203,7 +218,7 @@ import { gameAdCategories } from '../data/game-ads';
             a.y -= direction * overlapY * .52;
             b.y += direction * overlapY * .48;
             const relative = (b.vy - a.vy) * direction;
-            if (relative < 0) { const impulse = -(1.3 * relative) / 2; a.vy -= impulse * direction; b.vy += impulse * direction; }
+            if (relative < 0) { const impulse = -(1.7 * relative) / 2; a.vy -= impulse * direction; b.vy += impulse * direction; }
           }
         }
       }

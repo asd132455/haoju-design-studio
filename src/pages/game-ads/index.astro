@@ -7,7 +7,7 @@ const defaultCategory = gameAdCategories[0];
 
 <BaseLayout title="遊戲廣告｜好聚設計" description="瀏覽好聚設計的遊戲廣告作品。">
   <script>
-    window.location.replace('/game-ads/japanese-korean/');
+    window.location.replace(`/game-ads/${defaultCategory.slug}/`);
   </script>
-  <p><a href={`/game-ads/${defaultCategory.slug}/`}>前往日韓遊戲作品</a></p>
+  <p><a href={`/game-ads/${defaultCategory.slug}/`}>前往{defaultCategory.title}作品</a></p>
 </BaseLayout>

@@ -4,7 +4,6 @@ import { join } from 'node:path';
 export type WorkCategory = {
   slug: string;
   title: string;
-  description: string;
 };
 
 export type WorkItem = {
@@ -19,27 +18,22 @@ export const categories: WorkCategory[] = [
   {
     slug: 'ecommerce',
     title: '電商視覺',
-    description: '商品圖、活動視覺與廣告素材，讓品牌在電商平台清楚被看見。',
   },
   {
     slug: 'social',
     title: '社群視覺',
-    description: '為社群內容建立一致的視覺節奏，讓品牌每次出現都留下印象。',
   },
   {
     slug: 'sales-page',
     title: '銷售頁',
-    description: '以清楚的資訊層次呈現商品特色與品牌訊息。',
   },
   {
     slug: 'graphic-design',
     title: '平面設計',
-    description: '從數位畫面延伸到實體印刷，維持完整的品牌視覺感受。',
   },
   {
     slug: 'video',
     title: '影片製作',
-    description: '以影像呈現品牌特色。影片連結將於後續補上。',
   },
 ];
 

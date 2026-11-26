@@ -14,7 +14,7 @@ export function getStaticPaths() {
 const { category } = Astro.props;
 ---
 
-<BaseLayout title={`${category.title}作品｜好聚設計`} description={category.description}>
+<BaseLayout title={`${category.title}作品｜好聚設計`} description={`瀏覽好聚設計的${category.title}作品。`}>
   <SiteHeader />
   <main class="portfolio-page">
     <section class="graphic-design-network" data-particle-network aria-label="設計作品粒子連線互動">
@@ -27,8 +27,8 @@ const { category } = Astro.props;
         <h2 class="graphic-design-network__title">DESIGN</h2>
       </section>
     <section class="portfolio-heading portfolio-heading--category">
-      <h1 data-scroll-reveal-repeat>{category.title}<span>，好好聚焦。</span></h1>
-      <p data-scroll-reveal-repeat>{category.description}</p>
+      <h1 data-scroll-reveal-repeat>設計作品<span>｜視覺活動規劃</span></h1>
+      <p data-scroll-reveal-repeat>專為品牌整合活動廣告，官網主視覺，讓品牌持續成長</p>
     </section>
     <CategoryNav active={category.slug} />
     <section class="portfolio-gallery" data-work-gallery aria-label={`${category.title}作品`}>

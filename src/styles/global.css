@@ -220,6 +220,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--clay); outline-
 .about-section__portrait img { width: auto; height: auto; max-width: 100%; object-fit: contain; }
 .about-section__intro { max-width: 900px; margin: 0; text-align: left; }
 .about-section__intro h2 { margin: 0 0 18px; color: var(--ink); font-size: clamp(23px, 2.7vw, 34px); font-weight: 300; letter-spacing: -.055em; line-height: 1.55; }
+.about-section__intro .about-section__tagline { margin: -8px 0 18px; color: var(--sage-dark); font-size: clamp(19px, 2vw, 25px); font-weight: 300; letter-spacing: -.04em; line-height: 1.65; }
 .about-section__intro p { margin: 0; color: var(--muted); font-size: var(--body-copy-size); line-height: 2.15; letter-spacing: .035em; text-align: left; }
 .about-section__highlights { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; max-width: var(--max-width); margin: 0 auto; }
 .about-video { max-width: var(--max-width); margin: 20px auto 0; }
@@ -228,6 +229,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--clay); outline-
 .about-video .work-card__zoom { display: none; }
 .about-highlight { position: relative; padding: 27px 25px 29px; border: 1px solid rgb(100 100 100 / 16%); border-radius: var(--radius-card); background: #fbf9f7; transition: background-color .35s ease; }
 .about-highlight h3 { margin: 0 0 13px; color: var(--sage-dark); font-size: 18px; font-weight: 500; letter-spacing: .055em; line-height: 1.55; }
+.about-highlight--service h3 { color: #bb9a7f; }
 .about-highlight p { margin: 0; color: var(--muted); font-size: var(--body-copy-size); line-height: 2; letter-spacing: .025em; }
 .about-contact { display: flex; align-items: center; justify-content: center; gap: 32px; max-width: var(--max-width); margin: 44px auto 0; padding: 25px 0; border-top: 1px solid var(--line); }
 .about-contact p { margin: 0; color: var(--sage-dark); font-size: clamp(18px, 2.3vw, 28px); font-weight: 400; letter-spacing: .12em; line-height: 1.6; }
@@ -257,8 +259,8 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--clay); outline-
 .gravity-tags canvas { position: relative; z-index: 1; display: block; width: min(100% - 12vw, 1100px); height: 100%; margin: 0 auto; cursor: grab; touch-action: none; }
 .gravity-tags.is-grabbing canvas { cursor: grabbing; }
 .gravity-tags.is-crosshair-active .hello-crosshair { opacity: 1; }
-.category-nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; width: min(100% - 10vw, 1100px); margin: 0 auto 43px; }
-.category-pill { padding: 10px 17px; border: 1px solid var(--line); border-radius: 99px; color: var(--muted); font-size: 11px; letter-spacing: .04em; transition: color .2s ease, border-color .2s ease, background-color .2s ease, transform .2s ease; }
+.category-nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; width: min(100% - 10vw, 1100px); margin: 0 auto 43px; }
+.category-pill { padding: 12px 20px; border: 1px solid var(--line); border-radius: 99px; color: var(--muted); font-size: 13px; letter-spacing: .04em; transition: color .2s ease, border-color .2s ease, background-color .2s ease, transform .2s ease; }
 .category-pill:hover { transform: translateY(-1px); border-color: var(--sage-dark); color: var(--sage-dark); }
 .category-pill.is-active { border-color: var(--sage-dark); color: white; background: var(--sage-dark); font-weight: 500; }
 .category-nav--game-ads .category-pill:hover { border-color: var(--footer-ground); color: var(--footer-ground); }
@@ -300,7 +302,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--clay); outline-
 .lightbox__close:hover { transform: scale(1.04); border-color: rgb(255 255 255 / 34%); background: #454740; }
 .lightbox__nav svg, .lightbox__close svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
 .lightbox__nav { position: absolute; z-index: 2; top: 50%; transform: translateY(-50%); }
-.lightbox__nav::before { position: absolute; inset: -10px; content: ''; }
+.lightbox__nav::before { position: absolute; inset: -20px; content: ''; }
 .lightbox__nav--prev { left: 12px; }
 .lightbox__nav--next { right: 12px; }
 .lightbox__close { position: static; z-index: 3; }
@@ -340,6 +342,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--clay); outline-
 }
 
 @media (min-width: 961px) {
+  .portfolio-page .work-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
   .selected-section .service-carousel__viewport { position: relative; overflow: hidden; margin: -14px 0 -26px; padding: 14px 18px 26px; }
   .selected-section .service-grid { display: flex; gap: 19px; width: 100%; margin: 0; padding: 0; transition: transform .62s cubic-bezier(.22, .8, .24, 1); }
   .selected-section .service-card { flex: 0 0 calc((100% - 57px) / 4); }
@@ -361,6 +364,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--clay); outline-
   .site-footer { padding-right: 7vw; padding-left: 7vw; }
   .portfolio-gallery { width: min(100% - 9vw, 1280px); }
   .work-grid { gap: 22px 18px; }
+  .portfolio-page .work-grid { gap: 18px 14px; }
 }
 
 @media (max-width: 640px) {
@@ -415,6 +419,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--clay); outline-
   .about-section__portrait { width: auto; max-width: 100%; margin: 0 auto; }
   .about-section__intro { text-align: center; }
   .about-section__intro h2 { margin-bottom: 14px; font-size: clamp(16px, 4.5vw, 22px); letter-spacing: -.07em; text-align: center; }
+  .about-section__intro .about-section__tagline { margin: -6px 0 14px; font-size: clamp(15px, 4vw, 19px); letter-spacing: -.04em; text-align: center; }
   .about-section__intro p { font-size: var(--body-copy-size-mobile); text-align: left; }
   .about-section__highlights { grid-template-columns: 1fr; gap: 12px; }
   .about-video { margin-top: 20px; }
@@ -439,6 +444,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--clay); outline-
   .category-pill { display: grid; place-items: center; min-width: 0; padding: 9px 8px; font-size: 10px; text-align: center; white-space: nowrap; }
   .portfolio-gallery { width: calc(100% - 38px); }
   .work-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 19px 13px; }
+  .portfolio-page .work-grid { gap: 14px 10px; }
   .work-card__image-wrap { border-radius: 11px; }
   .selected-section .service-card { border-radius: 12px; }
   .work-card__caption { padding: 9px 0 8px; }
