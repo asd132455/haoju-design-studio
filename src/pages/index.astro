@@ -9,7 +9,7 @@ const lineUrl = 'https://line.me/ti/p/fJpEGM2oB2';
 const videoWorks = works.filter((work) => work.category === 'video');
 ---
 
-<BaseLayout title="好聚設計｜聚焦品牌視覺 建立質感好形象" description="好聚設計專注於整合平面設計「電商」「社群」與多元視覺設計，提升品牌識別度與特色，建立一致的品牌好形象。">
+<BaseLayout title="好聚設計｜聚焦品牌視覺 建立質感好形象" description="好聚設計專注於整合平面設計「電商」「社群」與多元視覺設計，提升品牌識別度與特色，建立一致的品牌好形象。" preloadImage="/images/brand/haoju-business-card.webp">
   <SiteHeader />
 
   <main>
@@ -41,7 +41,7 @@ const videoWorks = works.filter((work) => work.category === 'video');
       </div>
       <div class="hero-art">
         <span class="hero-art__frame">
-          <img src="/images/brand/haoju-business-card.webp" alt="好聚設計品牌名片形象" fetchpriority="high" decoding="async" />
+          <img src="/images/brand/haoju-business-card.webp" alt="好聚設計品牌名片形象" width="1000" height="1000" fetchpriority="high" decoding="async" />
           <span class="hero-art__foil" aria-hidden="true"></span>
           <span class="hero-art__shine" aria-hidden="true"></span>
         </span>
@@ -80,7 +80,7 @@ const videoWorks = works.filter((work) => work.category === 'video');
     <section class="about-section section-pad" id="about" aria-labelledby="about-title">
       <div class="about-section__profile">
         <figure class="about-section__portrait" data-scroll-reveal>
-          <img src="/images/brand/designer-portrait.webp" alt="好聚設計設計師 hao 的個人形象照" loading="lazy" decoding="async" />
+          <img src="/images/brand/designer-portrait.webp" alt="好聚設計設計師 hao 的個人形象照" width="231" height="231" loading="lazy" decoding="async" />
         </figure>
         <div class="about-section__intro" data-scroll-reveal-repeat>
           <h2 id="about-title">Hi，我是視覺設計師｜Geng Hao</h2>
@@ -276,6 +276,14 @@ const videoWorks = works.filter((work) => work.category === 'video');
       const rebuildParticles = () => {
         if (!context || !particleCanvas || !particleSection) return;
         const sectionStyles = getComputedStyle(particleSection);
+        if (sectionStyles.display === 'none' || particleSection.clientWidth <= 0 || particleSection.clientHeight <= 0) {
+          if (frame) {
+            cancelAnimationFrame(frame);
+            frame = 0;
+            running = false;
+          }
+          return;
+        }
         const horizontalPadding = parseFloat(sectionStyles.paddingLeft) + parseFloat(sectionStyles.paddingRight);
         width = particleSection.clientWidth - horizontalPadding;
         height = particleSection.clientHeight;

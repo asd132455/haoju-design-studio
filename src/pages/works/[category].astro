@@ -65,13 +65,18 @@ const { category } = Astro.props;
     };
 
     const startLoop = () => {
-      if (!reducedMotion && isVisible && !document.hidden && !frame) {
+      if (!reducedMotion && isVisible && !document.hidden && !frame && particles.length > 0) {
         frame = window.requestAnimationFrame(draw);
       }
     };
 
     const resize = () => {
       const bounds = section.getBoundingClientRect();
+      if (getComputedStyle(section).display === 'none' || bounds.width <= 0 || bounds.height <= 0) {
+        stopLoop();
+        particles = [];
+        return;
+      }
       const ratio = Math.min(window.devicePixelRatio || 1, 2);
       width = bounds.width;
       height = bounds.height;

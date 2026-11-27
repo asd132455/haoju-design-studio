@@ -57,8 +57,8 @@ import { gameAdCategories } from '../data/game-ads';
     const measure = () => {
       const fontSize = tagFontSize();
       context.font = `500 ${fontSize}px "Noto Sans TC", sans-serif`;
-      const horizontalPadding = compactTags.matches ? 41 : 56;
-      const tagHeight = compactTags.matches ? 43 : 60;
+      const horizontalPadding = compactTags.matches ? 29 : 56;
+      const tagHeight = compactTags.matches ? 36 : 60;
       return labels.map((text) => ({ text, width: Math.ceil(context.measureText(text).width + horizontalPadding), height: tagHeight }));
     };
 
@@ -74,7 +74,9 @@ import { gameAdCategories } from '../data/game-ads';
       tags.length = 0;
       const spawnStart = performance.now() / 1000;
       const items = measure();
-      const columns = Math.max(2, Math.floor(width / 185));
+      const columns = compactTags.matches
+        ? Math.max(3, Math.floor(width / 92))
+        : Math.max(2, Math.floor(width / 185));
       const lanes = Array.from({ length: columns }, (_, lane) => lane);
       for (let i = lanes.length - 1; i > 0; i--) {
         const swap = Math.floor(Math.random() * (i + 1));
@@ -90,7 +92,9 @@ import { gameAdCategories } from '../data/game-ads';
         tags.push({
           ...item,
           x: reduceMotion ? laneCenter : x,
-          y: reduceMotion ? 54 + Math.floor(index / columns) * 58 : -item.height - index * 42,
+          y: reduceMotion
+            ? (compactTags.matches ? 28 + Math.floor(index / columns) * 38 : 54 + Math.floor(index / columns) * 58)
+            : -item.height - index * (compactTags.matches ? 26 : 42),
           vx: 0,
           vy: reduceMotion ? 0 : 15 + Math.random() * 40,
           angle: initialAngle,
@@ -139,8 +143,8 @@ import { gameAdCategories } from '../data/game-ads';
           context.fill();
           context.fillStyle = '#dbb695';
         } else {
-          gradient.addColorStop(0, '#d6a17d');
-          gradient.addColorStop(1, '#c48962');
+          gradient.addColorStop(0, '#ca926d');
+          gradient.addColorStop(1, '#b67a54');
           context.fillStyle = gradient;
           context.fill();
           context.fillStyle = '#fff';
@@ -248,8 +252,8 @@ import { gameAdCategories } from '../data/game-ads';
           const tag = tags[Math.floor(Math.random() * tags.length)];
           if (tag) {
             const direction = Math.random() < .5 ? -1 : 1;
-            tag.vx = direction * (260 + Math.random() * 140);
-            tag.vy = -(650 + Math.random() * 120);
+            tag.vx = direction * (compactTags.matches ? 180 + Math.random() * 100 : 260 + Math.random() * 140);
+            tag.vy = -(compactTags.matches ? 420 + Math.random() * 90 : 650 + Math.random() * 120);
             tag.spin += direction * (2 + Math.random() * 2);
           }
         }

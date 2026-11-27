@@ -2,11 +2,13 @@
 interface Props {
   title?: string;
   description?: string;
+  preloadImage?: string;
 }
 
 const {
   title = '好聚設計｜聚焦品牌視覺，讓好印象聚在一起',
   description = '好聚設計整合電商、社群與多元視覺設計，展現品牌質感與特色，建立一致的品牌形象。',
+  preloadImage,
 } = Astro.props;
 import '../styles/global.css';
 ---
@@ -22,9 +24,11 @@ import '../styles/global.css';
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <link rel="icon" type="image/svg+xml" sizes="50x50" href="/favicon.svg?v=2" />
+    {preloadImage && <link rel="preload" as="image" href={preloadImage} fetchpriority="high" />}
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet" />
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet" /></noscript>
     <title>{title}</title>
   </head>
   <body>

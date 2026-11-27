@@ -152,8 +152,13 @@ let visibleIndex = 0;
 
   const requestClose = () => {
     if (!dialog?.open || closePending) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      dialog.close();
+      return;
+    }
     closePending = true;
-    closeTimer = window.setTimeout(() => dialog.close(), 420);
+    dialog.classList.add('is-closing');
+    closeTimer = window.setTimeout(() => dialog.close(), 280);
   };
 
   if (dialog && image && closeButton && previousButton && nextButton && imageWrap) {
@@ -164,9 +169,12 @@ let visibleIndex = 0;
         if (index < 0) return;
         window.clearTimeout(closeTimer);
         closePending = false;
+        dialog.classList.remove('is-closing');
         showImage(index);
+        const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
         dialog.showModal();
         document.documentElement.style.overflow = 'hidden';
+        if (scrollbarWidth > 0) document.documentElement.style.paddingRight = `${scrollbarWidth}px`;
         if (studioCursor) {
           dialog.append(studioCursor);
           studioCursor.classList.add('is-in-lightbox');
@@ -219,7 +227,9 @@ let visibleIndex = 0;
     dialog.addEventListener('close', () => {
       window.clearTimeout(closeTimer);
       closePending = false;
+      dialog.classList.remove('is-closing');
       document.documentElement.style.overflow = '';
+      document.documentElement.style.paddingRight = '';
       if (studioCursor) {
         document.body.append(studioCursor);
         studioCursor.classList.remove('is-in-lightbox');
