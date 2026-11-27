@@ -7,34 +7,45 @@ interface Props {
 }
 
 const { items, activeCategory } = Astro.props;
+let visibleIndex = 0;
 ---
 
 <div class="work-grid">
-  {items.map((work, index) => (
-    <article class="work-card" data-scroll-reveal-repeat data-work-category={work.category} hidden={activeCategory ? work.category !== activeCategory : undefined}>
-      <button
-        class:list={['work-card__open', work.videoUrl && 'work-card__open--video']}
-        type="button"
-        data-lightbox-open
-        data-image={work.image}
-        data-alt={work.alt}
-        data-category={work.category}
-        data-video-embed={work.videoUrl}
-        aria-label={work.videoUrl ? `播放影片：${work.title}` : `放大觀看：${work.title}`}
-      >
-        <span class:list={['work-card__image-wrap', work.videoUrl && 'work-card__image-wrap--video']}>
-          <img src={work.image} alt={work.alt} loading={index < 3 ? 'eager' : 'lazy'} decoding="async" />
-          {work.videoUrl ? (
-            <span class="work-card__play" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><path d="M8.5 6.5 18 12l-9.5 5.5z" /></svg>
-            </span>
-          ) : (
-            <span class="work-card__zoom" aria-hidden="true">↗</span>
-          )}
-        </span>
-      </button>
-    </article>
-  ))}
+  {items.map((work) => {
+    const isVisible = !activeCategory || work.category === activeCategory;
+    const orderInActive = isVisible ? visibleIndex++ : -1;
+    return (
+      <article class="work-card" data-scroll-reveal-repeat data-work-category={work.category} hidden={activeCategory ? !isVisible : undefined}>
+        <button
+          class:list={['work-card__open', work.videoUrl && 'work-card__open--video']}
+          type="button"
+          data-lightbox-open
+          data-image={work.image}
+          data-alt={work.alt}
+          data-category={work.category}
+          data-video-embed={work.videoUrl}
+          aria-label={work.videoUrl ? `播放影片：${work.title}` : `放大觀看：${work.title}`}
+        >
+          <span class:list={['work-card__image-wrap', work.videoUrl && 'work-card__image-wrap--video']}>
+            <img
+              src={work.image}
+              alt={work.alt}
+              loading={isVisible && orderInActive < 8 ? 'eager' : 'lazy'}
+              fetchpriority={isVisible && orderInActive < 4 ? 'high' : undefined}
+              decoding="async"
+            />
+            {work.videoUrl ? (
+              <span class="work-card__play" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M8.5 6.5 18 12l-9.5 5.5z" /></svg>
+              </span>
+            ) : (
+              <span class="work-card__zoom" aria-hidden="true">↗</span>
+            )}
+          </span>
+        </button>
+      </article>
+    );
+  })}
 </div>
 
 <dialog class="lightbox" data-lightbox aria-label="作品放大檢視">

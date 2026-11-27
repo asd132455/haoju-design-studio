@@ -54,7 +54,21 @@ const { category } = Astro.props;
     let width = 0;
     let height = 0;
     let frame = 0;
+    let isVisible = true;
     let particles: { x: number; y: number; vx: number; vy: number; radius: number }[] = [];
+
+    const stopLoop = () => {
+      if (frame) {
+        window.cancelAnimationFrame(frame);
+        frame = 0;
+      }
+    };
+
+    const startLoop = () => {
+      if (!reducedMotion && isVisible && !document.hidden && !frame) {
+        frame = window.requestAnimationFrame(draw);
+      }
+    };
 
     const resize = () => {
       const bounds = section.getBoundingClientRect();
@@ -145,7 +159,8 @@ const { category } = Astro.props;
         context.fill();
       }
 
-      if (!reducedMotion) frame = window.requestAnimationFrame(draw);
+      if (!reducedMotion && isVisible && !document.hidden) frame = window.requestAnimationFrame(draw);
+      else frame = 0;
     };
 
     section.addEventListener('pointermove', (event) => {
@@ -167,11 +182,27 @@ const { category } = Astro.props;
       section.classList.remove('is-crosshair-active');
       document.body.classList.remove('is-crosshair-zone');
     });
+    const onVisibilityChange = () => {
+      if (document.hidden) stopLoop();
+      else startLoop();
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    let observer: IntersectionObserver | undefined;
+    if ('IntersectionObserver' in window) {
+      observer = new IntersectionObserver(([entry]) => {
+        isVisible = entry.isIntersecting;
+        if (isVisible) startLoop();
+        else stopLoop();
+      }, { threshold: 0.05 });
+      observer.observe(section);
+    }
     window.addEventListener('resize', resize);
     resize();
 
     document.addEventListener('astro:before-swap', () => {
-      window.cancelAnimationFrame(frame);
+      stopLoop();
+      observer?.disconnect();
+      document.removeEventListener('visibilitychange', onVisibilityChange);
       window.removeEventListener('resize', resize);
     }, { once: true });
   });

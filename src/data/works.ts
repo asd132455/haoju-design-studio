@@ -56,24 +56,25 @@ export const categories: WorkCategory[] = [
 const worksRoot = join(process.cwd(), 'public', 'images', 'works');
 const serviceCardsRoot = join(process.cwd(), 'public', 'images', 'service-cards');
 const imageExtensions = new Set(['.jpg', '.jpeg', '.png', '.webp', '.avif']);
+const stripExt = (filename: string) => filename.replace(/\.[^.]+$/, '');
 
 // Existing filenames keep their original editorial titles and order until they are renamed.
 const existingWorkDetails: Record<string, Pick<WorkItem, 'title' | 'alt'>> = {
-  'ecommerce/1200x628_140k.jpg': { title: 'ALBION 白神水活動視覺', alt: 'ALBION 白神水電商活動橫幅設計' },
-  'ecommerce/190225亞立詩_500x500.jpg': { title: 'ALUXE 海外婚禮博覽會', alt: 'ALUXE 海外婚禮博覽會電商視覺' },
-  'ecommerce/190225果物配.jpg': { title: '果物配｜荔枝季主視覺', alt: '果物配荔枝季電商主視覺' },
-  'social/IG模板2_01.jpg': { title: 'Bobo Choses｜社群視覺 01', alt: 'Bobo Choses 社群視覺作品一' },
-  'social/IG模板2_07.jpg': { title: 'STATE｜社群視覺 02', alt: 'STATE 社群視覺作品二' },
-  'social/IG模板2_12.jpg': { title: 'Bobo Choses｜社群視覺 03', alt: 'Bobo Choses 社群視覺作品三' },
-  'sales-page/MK_-EDM_0914_03.jpg': { title: '服飾品牌銷售頁 01', alt: '服飾品牌商品銷售頁設計一' },
-  'sales-page/MK_-EDM_0914_06.jpg': { title: '服飾品牌銷售頁 02', alt: '服飾品牌商品銷售頁設計二' },
-  'sales-page/MK_EDM_0908_03.jpg': { title: '服飾品牌銷售頁 03', alt: '服飾品牌商品銷售頁設計三' },
-  'graphic-design/200317益富.jpg': { title: '益富品牌平面設計 01', alt: '益富營養補給主題平面設計作品一' },
-  'graphic-design/200317益富02.jpg': { title: '益富品牌平面設計 02', alt: '益富健康主題平面設計作品二' },
-  'graphic-design/200317益富03.jpg': { title: '益富品牌平面設計 03', alt: '益富品牌平面設計作品三' },
-  'video/好聚資訊頁1.jpg': { title: '好聚品牌影片封面 01', alt: '好聚品牌影片封面作品一' },
-  'video/好聚資訊頁2.jpg': { title: '好聚品牌影片封面 02', alt: '好聚品牌影片封面作品二' },
-  'video/好聚資訊頁3.jpg': { title: '好聚品牌影片封面 03', alt: '好聚品牌影片封面作品三' },
+  'ecommerce/1200x628_140k': { title: 'ALBION 白神水活動視覺', alt: 'ALBION 白神水電商活動橫幅設計' },
+  'ecommerce/190225亞立詩_500x500': { title: 'ALUXE 海外婚禮博覽會', alt: 'ALUXE 海外婚禮博覽會電商視覺' },
+  'ecommerce/190225果物配': { title: '果物配｜荔枝季主視覺', alt: '果物配荔枝季電商主視覺' },
+  'social/IG模板2_01': { title: 'Bobo Choses｜社群視覺 01', alt: 'Bobo Choses 社群視覺作品一' },
+  'social/IG模板2_07': { title: 'STATE｜社群視覺 02', alt: 'STATE 社群視覺作品二' },
+  'social/IG模板2_12': { title: 'Bobo Choses｜社群視覺 03', alt: 'Bobo Choses 社群視覺作品三' },
+  'sales-page/MK_-EDM_0914_03': { title: '服飾品牌銷售頁 01', alt: '服飾品牌商品銷售頁設計一' },
+  'sales-page/MK_-EDM_0914_06': { title: '服飾品牌銷售頁 02', alt: '服飾品牌商品銷售頁設計二' },
+  'sales-page/MK_EDM_0908_03': { title: '服飾品牌銷售頁 03', alt: '服飾品牌商品銷售頁設計三' },
+  'graphic-design/200317益富': { title: '益富品牌平面設計 01', alt: '益富營養補給主題平面設計作品一' },
+  'graphic-design/200317益富02': { title: '益富品牌平面設計 02', alt: '益富健康主題平面設計作品二' },
+  'graphic-design/200317益富03': { title: '益富品牌平面設計 03', alt: '益富品牌平面設計作品三' },
+  'video/好聚資訊頁1': { title: '好聚品牌影片封面 01', alt: '好聚品牌影片封面作品一' },
+  'video/好聚資訊頁2': { title: '好聚品牌影片封面 02', alt: '好聚品牌影片封面作品二' },
+  'video/好聚資訊頁3': { title: '好聚品牌影片封面 03', alt: '好聚品牌影片封面作品三' },
 };
 
 const existingOrder = Object.keys(existingWorkDetails);
@@ -104,8 +105,8 @@ export const works: WorkItem[] = categories.flatMap((category) => {
     if (sequenceA !== null) return -1;
     if (sequenceB !== null) return 1;
 
-    const legacyA = existingOrder.indexOf(`${category.slug}/${a}`);
-    const legacyB = existingOrder.indexOf(`${category.slug}/${b}`);
+    const legacyA = existingOrder.indexOf(`${category.slug}/${stripExt(a)}`);
+    const legacyB = existingOrder.indexOf(`${category.slug}/${stripExt(b)}`);
     if (legacyA !== -1 && legacyB !== -1) return legacyA - legacyB;
     if (legacyA !== -1) return -1;
     if (legacyB !== -1) return 1;
@@ -114,7 +115,8 @@ export const works: WorkItem[] = categories.flatMap((category) => {
 
   return filenames.map((filename) => {
     const sequence = getSequence(filename);
-    const details = existingWorkDetails[`${category.slug}/${filename}`];
+    const stem = stripExt(filename);
+    const details = existingWorkDetails[`${category.slug}/${stem}`];
     const title = details?.title ?? getTitleFromFilename(filename, category.title, sequence);
     return {
       category: category.slug,
@@ -144,31 +146,26 @@ const serviceImageIndex: Record<string, number> = {
   'graphic-design': 1,
 };
 
-const serviceCardImageFiles: Record<string, string> = {
-  'brand-key-visual': 'brand-key-visual.jpg',
-  ecommerce: 'ecommerce.jpg',
-  social: 'social.jpg',
-  'group-design': 'group-design.jpg',
-  'graphic-design': 'graphic-design.jpg',
-  'sales-page': 'sales-page.jpg',
-  'illustration-cards': 'illustration-cards.jpg',
-  'forms-menus': 'forms-menus.jpg',
-  video: 'video.jpg',
+const resolveServiceCardImage = (slug: string) => {
+  for (const ext of ['.webp', '.jpg', '.jpeg', '.png', '.avif']) {
+    const filename = `${slug}${ext}`;
+    if (existsSync(join(serviceCardsRoot, filename))) {
+      return `/images/service-cards/${encodeURIComponent(filename)}`;
+    }
+  }
+  return undefined;
 };
 
 export const services = categories.map((category) => {
   const categoryWorks = works.filter((work) => work.category === category.slug);
   const fallbackImage = categoryWorks[serviceImageIndex[category.slug] ?? 0];
-  const cardImageFile = serviceCardImageFiles[category.slug];
-  const cardImagePath = cardImageFile ? join(serviceCardsRoot, cardImageFile) : '';
+  const cardImageUrl = resolveServiceCardImage(category.slug);
 
   return {
     category: category.slug,
     title: category.title,
     examples: serviceExamples[category.slug] ?? '',
-    image: cardImagePath && existsSync(cardImagePath)
-      ? `/images/service-cards/${encodeURIComponent(cardImageFile)}`
-      : fallbackImage?.image,
+    image: cardImageUrl ?? fallbackImage?.image,
     alt: fallbackImage?.alt ?? `${category.title}作品預覽`,
   };
 });

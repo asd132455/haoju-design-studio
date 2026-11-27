@@ -41,7 +41,7 @@ const videoWorks = works.filter((work) => work.category === 'video');
       </div>
       <div class="hero-art">
         <span class="hero-art__frame">
-          <img src="/images/brand/haoju-business-card.jpg" alt="好聚設計品牌名片形象" fetchpriority="high" />
+          <img src="/images/brand/haoju-business-card.webp" alt="好聚設計品牌名片形象" fetchpriority="high" decoding="async" />
           <span class="hero-art__foil" aria-hidden="true"></span>
           <span class="hero-art__shine" aria-hidden="true"></span>
         </span>
@@ -80,7 +80,7 @@ const videoWorks = works.filter((work) => work.category === 'video');
     <section class="about-section section-pad" id="about" aria-labelledby="about-title">
       <div class="about-section__profile">
         <figure class="about-section__portrait" data-scroll-reveal>
-          <img src="/images/brand/designer-portrait.png" alt="好聚設計設計師 hao 的個人形象照" loading="lazy" decoding="async" />
+          <img src="/images/brand/designer-portrait.webp" alt="好聚設計設計師 hao 的個人形象照" loading="lazy" decoding="async" />
         </figure>
         <div class="about-section__intro" data-scroll-reveal-repeat>
           <h2 id="about-title">Hi，我是視覺設計師｜Geng Hao</h2>
@@ -128,8 +128,6 @@ const videoWorks = works.filter((work) => work.category === 'video');
   </main>
 
   <script>
-    import { gsap } from 'gsap';
-
     const crosshairSections = document.querySelectorAll<HTMLElement>('.hello-particles');
     const fineCrosshairPointer = window.matchMedia('(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)');
 
