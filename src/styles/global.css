@@ -302,7 +302,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--clay); outline-
 .portfolio-bottom { display: flex; justify-content: center; padding-top: 44px; }
 .lightbox:not([open]) { display: none; }
 .lightbox { opacity: 0; transform: scale(.99); transition: none; }
-.lightbox[open] { position: fixed; inset: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 10px; overflow: hidden; width: min(96vw, 1480px); max-width: none; height: min(96vh, 1100px); height: min(96dvh, 1100px); max-height: none; margin: auto; padding: clamp(12px, 2.5vw, 28px); border: 0; border-radius: 0; color: var(--paper-light); background: transparent; box-shadow: none; opacity: 1; transform: scale(1); }
+.lightbox[open] { position: fixed; inset: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 10px; overflow: hidden; width: min(96vw, 1480px); max-width: none; height: min(96vh, 1100px); height: min(96dvh, 1100px); max-height: none; margin: auto; padding: clamp(12px, 2.5vw, 28px); border: 0; border-radius: 0; color: var(--paper-light); background: transparent; box-shadow: none; opacity: 1; transform: scale(1); touch-action: none; overscroll-behavior: contain; }
 .lightbox::backdrop { background: rgb(31 32 28 / 86%); backdrop-filter: blur(5px); }
 .lightbox::backdrop { transition: none; }
 .lightbox__topline { display: flex; align-items: center; justify-content: flex-end; gap: 20px; min-height: 44px; }
@@ -321,7 +321,8 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--clay); outline-
 .lightbox__video-frame { width: min(100%, 1280px); aspect-ratio: 16 / 9; max-height: 100%; overflow: hidden; border-radius: 12px; background: #000; box-shadow: 0 18px 48px rgb(0 0 0 / 45%); }
 .lightbox__video-frame iframe { display: block; width: 100%; height: 100%; border: 0; }
 .lightbox.is-video .lightbox__hint { display: none; }
-.lightbox__image-wrap img { display: block; width: 100%; height: 100%; min-width: 0; min-height: 0; border-radius: 6px; object-fit: contain; transform-origin: center; transition: transform .15s ease-out; }
+.lightbox__image-wrap img { display: block; width: 100%; height: 100%; min-width: 0; min-height: 0; border-radius: 6px; object-fit: contain; transform-origin: center; transition: transform .22s cubic-bezier(.22, .8, .24, 1); will-change: transform; }
+.lightbox__image-wrap img.is-gesturing { transition: none; }
 .lightbox__image-wrap img[hidden] { display: none; }
 .lightbox[data-category='sales-page'] .lightbox__image-wrap { overflow-y: auto; place-items: start center; scrollbar-width: thin; scrollbar-color: rgb(255 255 255 / 26%) transparent; }
 .lightbox[data-category='sales-page'] .lightbox__image-wrap::-webkit-scrollbar { width: 5px; }

@@ -68,7 +68,7 @@ let visibleIndex = 0;
     </div>
   </div>
   <button class="lightbox__nav lightbox__nav--next" type="button" data-lightbox-next aria-label="下一張作品"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 5 7 7-7 7" /></svg></button>
-  <p class="lightbox__hint">觸控螢幕可雙指縮放，左右滑動切換作品</p>
+  <p class="lightbox__hint">點兩下或雙指縮放，左右滑動切換作品</p>
 </dialog>
 
 <script>
@@ -166,6 +166,7 @@ let visibleIndex = 0;
         closePending = false;
         showImage(index);
         dialog.showModal();
+        document.documentElement.style.overflow = 'hidden';
         if (studioCursor) {
           dialog.append(studioCursor);
           studioCursor.classList.add('is-in-lightbox');
@@ -178,7 +179,9 @@ let visibleIndex = 0;
     previousButton.addEventListener('click', () => showImage(currentIndex - 1));
     nextButton.addEventListener('click', () => showImage(currentIndex + 1));
     closeButton.addEventListener('click', requestClose);
+    let suppressClickUntil = 0;
     dialog.addEventListener('click', (event) => {
+      if (performance.now() < suppressClickUntil) return;
       const target = event.target;
       if (!(target instanceof Element)) return;
       if (target.closest('button') || target.closest('.lightbox__video-frame')) return;
@@ -216,6 +219,7 @@ let visibleIndex = 0;
     dialog.addEventListener('close', () => {
       window.clearTimeout(closeTimer);
       closePending = false;
+      document.documentElement.style.overflow = '';
       if (studioCursor) {
         document.body.append(studioCursor);
         studioCursor.classList.remove('is-in-lightbox');
@@ -232,46 +236,165 @@ let visibleIndex = 0;
     });
 
     const distanceBetween = (points: { x: number; y: number }[]) => Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
-    const renderTransform = () => { image.style.transform = `translate(${pan.x}px, ${pan.y}px) scale(${scale})`; };
+    const midpointBetween = (points: { x: number; y: number }[]) => ({
+      x: (points[0].x + points[1].x) / 2,
+      y: (points[0].y + points[1].y) / 2,
+    });
+    const getClampBounds = (targetScale: number) => {
+      const wrapRect = imageWrap.getBoundingClientRect();
+      let baseWidth = wrapRect.width;
+      let baseHeight = wrapRect.height;
+      if (dialog.dataset.category === 'sales-page') {
+        baseWidth = image.offsetWidth || wrapRect.width;
+        baseHeight = image.offsetHeight || wrapRect.height;
+      } else if (image.naturalWidth > 0 && image.naturalHeight > 0 && wrapRect.width > 0 && wrapRect.height > 0) {
+        const naturalRatio = image.naturalWidth / image.naturalHeight;
+        const wrapRatio = wrapRect.width / wrapRect.height;
+        if (naturalRatio > wrapRatio) {
+          baseWidth = wrapRect.width;
+          baseHeight = wrapRect.width / naturalRatio;
+        } else {
+          baseHeight = wrapRect.height;
+          baseWidth = wrapRect.height * naturalRatio;
+        }
+      }
+      return {
+        wrapRect,
+        maxPanX: Math.max(0, (baseWidth * targetScale - wrapRect.width) / 2),
+        maxPanY: Math.max(0, (baseHeight * targetScale - wrapRect.height) / 2),
+      };
+    };
+    const clampPan = (x: number, y: number, targetScale: number) => {
+      if (targetScale <= 1.01) return { x: 0, y: 0 };
+      const { maxPanX, maxPanY } = getClampBounds(targetScale);
+      return {
+        x: Math.max(-maxPanX, Math.min(maxPanX, x)),
+        y: Math.max(-maxPanY, Math.min(maxPanY, y)),
+      };
+    };
+    const renderTransform = (animate = false) => {
+      image.classList.toggle('is-gesturing', !animate);
+      image.style.transform = `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${scale})`;
+    };
+
+    let startMidpoint = { x: 0, y: 0 };
+    let didPinch = false;
+    let didMove = false;
+    let lastTapTime = 0;
+    let lastTapPoint = { x: 0, y: 0 };
+
+    dialog.addEventListener('touchmove', (event) => {
+      if (!dialog.open || dialog.classList.contains('is-video')) return;
+      if (event.touches.length >= 2 || dialog.dataset.category !== 'sales-page') {
+        event.preventDefault();
+      }
+    }, { passive: false });
+    dialog.addEventListener('gesturestart', (event) => event.preventDefault());
+    dialog.addEventListener('gesturechange', (event) => event.preventDefault());
+
     imageWrap.addEventListener('pointerdown', (event) => {
       if (event.pointerType === 'mouse' && event.button !== 0) return;
       imageWrap.setPointerCapture(event.pointerId);
       pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
-      gestureStart = { x: event.clientX, y: event.clientY };
-      startPan = { ...pan };
-      startScrollTop = imageWrap.scrollTop;
-      if (pointers.size === 2) {
+      if (pointers.size === 1) {
+        didPinch = false;
+        didMove = false;
+        gestureStart = { x: event.clientX, y: event.clientY };
+        startPan = { ...pan };
+        startScrollTop = imageWrap.scrollTop;
+      } else if (pointers.size === 2) {
         const points = [...pointers.values()];
+        didPinch = true;
+        didMove = true;
         startDistance = distanceBetween(points);
+        startMidpoint = midpointBetween(points);
         startScale = scale;
+        startPan = { ...pan };
       }
     });
     imageWrap.addEventListener('pointermove', (event) => {
       if (!pointers.has(event.pointerId)) return;
       pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
-      if (pointers.size >= 2 && startDistance) {
-        scale = Math.max(1, Math.min(4, startScale * distanceBetween([...pointers.values()]) / startDistance));
-        renderTransform();
+      if (pointers.size >= 2 && startDistance > 0) {
+        const points = [...pointers.values()].slice(0, 2);
+        const nextScale = Math.max(1, Math.min(4, startScale * distanceBetween(points) / startDistance));
+        const currentMidpoint = midpointBetween(points);
+        const { wrapRect } = getClampBounds(nextScale);
+        const centerX = wrapRect.left + wrapRect.width / 2;
+        const centerY = wrapRect.top + wrapRect.height / 2;
+        const offsetX = startMidpoint.x - centerX;
+        const offsetY = startMidpoint.y - centerY;
+        const ratio = nextScale / startScale;
+        const rawX = (startPan.x - offsetX) * ratio + offsetX + (currentMidpoint.x - startMidpoint.x);
+        const rawY = (startPan.y - offsetY) * ratio + offsetY + (currentMidpoint.y - startMidpoint.y);
+        scale = nextScale <= 1.01 ? 1 : nextScale;
+        pan = clampPan(rawX, rawY, scale);
+        renderTransform(false);
         return;
       }
+      if (pointers.size !== 1) return;
       const dx = event.clientX - gestureStart.x;
       const dy = event.clientY - gestureStart.y;
-      if (scale > 1) {
-        pan = { x: startPan.x + dx, y: startPan.y + dy };
-        renderTransform();
+      if (Math.hypot(dx, dy) > 8) didMove = true;
+      if (scale > 1.01) {
+        pan = clampPan(startPan.x + dx, startPan.y + dy, scale);
+        renderTransform(false);
       } else if (dialog.dataset.category === 'sales-page') {
         imageWrap.scrollTop = startScrollTop - dy;
       }
     });
     const endPointer = (event: PointerEvent) => {
+      if (!pointers.has(event.pointerId)) return;
       const wasSinglePointer = pointers.size === 1;
       pointers.delete(event.pointerId);
-      if (wasSinglePointer && scale === 1) {
+
+      if (pointers.size === 1) {
+        const [remaining] = [...pointers.values()];
+        gestureStart = { x: remaining.x, y: remaining.y };
+        startPan = { ...pan };
+        startDistance = 0;
+        return;
+      }
+
+      if (pointers.size < 2) startDistance = 0;
+
+      if (didPinch || didMove) {
+        suppressClickUntil = performance.now() + 320;
+      }
+
+      if (wasSinglePointer && !didPinch && scale <= 1.01) {
         const dx = event.clientX - gestureStart.x;
         const dy = event.clientY - gestureStart.y;
-        if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.25) showImage(currentIndex + (dx < 0 ? 1 : -1));
+        if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.25) {
+          showImage(currentIndex + (dx < 0 ? 1 : -1));
+          lastTapTime = 0;
+          return;
+        }
       }
-      if (pointers.size < 2) startDistance = 0;
+
+      if (event.type === 'pointerup' && wasSinglePointer && !didPinch && !didMove && !dialog.classList.contains('is-video')) {
+        const now = performance.now();
+        const isDoubleTap = now - lastTapTime < 320 && Math.hypot(event.clientX - lastTapPoint.x, event.clientY - lastTapPoint.y) < 36;
+        if (isDoubleTap) {
+          lastTapTime = 0;
+          suppressClickUntil = now + 400;
+          if (scale > 1.05) {
+            scale = 1;
+            pan = { x: 0, y: 0 };
+          } else {
+            const targetScale = 2.5;
+            const { wrapRect } = getClampBounds(targetScale);
+            const offsetX = event.clientX - (wrapRect.left + wrapRect.width / 2);
+            const offsetY = event.clientY - (wrapRect.top + wrapRect.height / 2);
+            scale = targetScale;
+            pan = clampPan(-offsetX * (targetScale - 1), -offsetY * (targetScale - 1), targetScale);
+          }
+          renderTransform(true);
+        } else {
+          lastTapTime = now;
+          lastTapPoint = { x: event.clientX, y: event.clientY };
+        }
+      }
     };
     imageWrap.addEventListener('pointerup', endPointer);
     imageWrap.addEventListener('pointercancel', endPointer);
