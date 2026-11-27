@@ -1,4 +1,4 @@
-import { readdirSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 export type WorkCategory = {
@@ -16,6 +16,10 @@ export type WorkItem = {
 
 export const categories: WorkCategory[] = [
   {
+    slug: 'brand-key-visual',
+    title: '品牌主視覺',
+  },
+  {
     slug: 'ecommerce',
     title: '電商視覺',
   },
@@ -24,12 +28,24 @@ export const categories: WorkCategory[] = [
     title: '社群視覺',
   },
   {
-    slug: 'sales-page',
-    title: '銷售頁',
+    slug: 'group-design',
+    title: '組圖設計',
   },
   {
     slug: 'graphic-design',
     title: '平面設計',
+  },
+  {
+    slug: 'sales-page',
+    title: '銷售頁',
+  },
+  {
+    slug: 'illustration-cards',
+    title: '插圖卡片',
+  },
+  {
+    slug: 'forms-menus',
+    title: '表單菜單',
   },
   {
     slug: 'video',
@@ -38,6 +54,7 @@ export const categories: WorkCategory[] = [
 ];
 
 const worksRoot = join(process.cwd(), 'public', 'images', 'works');
+const serviceCardsRoot = join(process.cwd(), 'public', 'images', 'service-cards');
 const imageExtensions = new Set(['.jpg', '.jpeg', '.png', '.webp', '.avif']);
 
 // Existing filenames keep their original editorial titles and order until they are renamed.
@@ -108,45 +125,50 @@ export const works: WorkItem[] = categories.flatMap((category) => {
   });
 });
 
-export const services = [
-  {
-    category: 'ecommerce',
-    title: '電商視覺',
-    descriptor: '整體視覺規劃',
-    examples: 'BANNER・商品圖・EDM',
-    image: works.filter((work) => work.category === 'ecommerce')[1].image,
-    alt: '電商視覺服務作品預覽',
-  },
-  {
-    category: 'social',
-    title: '社群視覺',
-    descriptor: '品牌社群設計',
-    examples: '貼文・廣告圖・LINE 選單',
-    image: works.filter((work) => work.category === 'social')[1].image,
-    alt: '社群視覺服務作品預覽',
-  },
-  {
-    category: 'sales-page',
-    title: '銷售頁',
-    descriptor: '商品銷售視覺',
-    examples: '商品長頁・活動頁',
-    image: works.filter((work) => work.category === 'sales-page')[1].image,
-    alt: '銷售頁服務作品預覽',
-  },
-  {
-    category: 'graphic-design',
-    title: '平面設計',
-    descriptor: '品牌平面視覺',
-    examples: 'DM・海報・印刷品',
-    image: works.filter((work) => work.category === 'graphic-design')[1].image,
-    alt: '平面設計服務作品預覽',
-  },
-  {
-    category: 'video',
-    title: '影片製作',
-    descriptor: '品牌影音設計',
-    examples: '品牌短片・影音剪輯・影像後製',
-    image: works.find((work) => work.category === 'video')!.image,
-    alt: '影片製作服務作品預覽',
-  },
-];
+const serviceExamples: Record<string, string> = {
+  'brand-key-visual': '活動視覺・宣傳主圖',
+  ecommerce: 'Banner・商品圖・EDM',
+  social: '貼文・廣告圖・LINE 選單',
+  'group-design': '商品組圖・社群系列',
+  'graphic-design': 'DM・海報・印刷品',
+  'sales-page': '商品長頁・活動頁',
+  'illustration-cards': '插畫卡片・角色圖像',
+  'forms-menus': '表單・菜單設計',
+  video: '品牌短片・影音剪輯・影像後製',
+};
+
+const serviceImageIndex: Record<string, number> = {
+  ecommerce: 1,
+  social: 1,
+  'sales-page': 1,
+  'graphic-design': 1,
+};
+
+const serviceCardImageFiles: Record<string, string> = {
+  'brand-key-visual': 'brand-key-visual.jpg',
+  ecommerce: 'ecommerce.jpg',
+  social: 'social.jpg',
+  'group-design': 'group-design.jpg',
+  'graphic-design': 'graphic-design.jpg',
+  'sales-page': 'sales-page.jpg',
+  'illustration-cards': 'illustration-cards.jpg',
+  'forms-menus': 'forms-menus.jpg',
+  video: 'video.jpg',
+};
+
+export const services = categories.map((category) => {
+  const categoryWorks = works.filter((work) => work.category === category.slug);
+  const fallbackImage = categoryWorks[serviceImageIndex[category.slug] ?? 0];
+  const cardImageFile = serviceCardImageFiles[category.slug];
+  const cardImagePath = cardImageFile ? join(serviceCardsRoot, cardImageFile) : '';
+
+  return {
+    category: category.slug,
+    title: category.title,
+    examples: serviceExamples[category.slug] ?? '',
+    image: cardImagePath && existsSync(cardImagePath)
+      ? `/images/service-cards/${encodeURIComponent(cardImageFile)}`
+      : fallbackImage?.image,
+    alt: fallbackImage?.alt ?? `${category.title}作品預覽`,
+  };
+});

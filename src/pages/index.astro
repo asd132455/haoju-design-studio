@@ -35,7 +35,7 @@ const videoWorks = works.filter((work) => work.category === 'video');
         </h1>
         <p class="hero__description" data-scroll-reveal-repeat>多年廣告設計經驗，解決實際問題，專注整合平面設計｜主視覺｜電商｜社群｜多元視覺設計，提升品牌識別度與能見度，優化產品美學，建立有特色的品牌好形象。</p>
         <div class="hero__actions" data-scroll-reveal-repeat>
-          <a class="button button--dark" href="/works/ecommerce/">設計案例</a>
+          <a class="button button--dark" href="/works/brand-key-visual/">設計案例</a>
           <a class="button button--footer" href="/game-ads/japanese-games/">遊戲類別</a>
         </div>
       </div>
@@ -52,26 +52,24 @@ const videoWorks = works.filter((work) => work.category === 'video');
       <div class="service-carousel" data-service-carousel>
         <div class="service-carousel__viewport">
           <div class="service-grid" data-carousel-track>
-            {services.map((service) => {
-              const category = categories.find((item) => item.slug === service.category)!;
-              return (
-                <a class:list={['service-card', service.category === 'video' && 'service-card--desktop-only']} href={`/works/${service.category}/`}>
-                  <span class="service-card__image"><img src={service.image} alt={service.alt} loading="lazy" decoding="async" /></span>
+            {services.map((service) => (
+                <a class="service-card" href={`/works/${service.category}/`}>
+                  <span class="service-card__image">
+                    {service.image && <img src={service.image} alt={service.alt} loading="lazy" decoding="async" />}
+                  </span>
                   <span class="service-card__body">
                     <span class="service-card__title">{service.title}</span>
-                    <span class="service-card__examples">{service.examples}</span>
+                    {service.examples && <span class="service-card__examples">{service.examples}</span>}
                   </span>
-                  <span class="visually-hidden">{category.description}</span>
                 </a>
-              );
-            })}
+            ))}
           </div>
         </div>
         <div class="selected-more-row">
           <button class="service-carousel__arrow service-carousel__arrow--prev" type="button" data-carousel-prev aria-label="上一個作品分類">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
           </button>
-          <a class="selected-more" data-scroll-reveal-repeat href="/works/ecommerce/">更多作品</a>
+          <a class="selected-more" data-scroll-reveal-repeat href="/works/brand-key-visual/">更多作品</a>
           <button class="service-carousel__arrow service-carousel__arrow--next" type="button" data-carousel-next aria-label="下一個作品分類">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
           </button>
@@ -357,6 +355,8 @@ const videoWorks = works.filter((work) => work.category === 'video');
       rebuildParticles();
     }
 
+    const motionAllowed = window.matchMedia('(prefers-reduced-motion: no-preference)').matches;
+
     document.querySelectorAll<HTMLElement>('[data-service-carousel]').forEach((carousel) => {
       const track = carousel.querySelector<HTMLElement>('[data-carousel-track]');
       const previous = carousel.querySelector<HTMLButtonElement>('[data-carousel-prev]');
@@ -372,6 +372,25 @@ const videoWorks = works.filter((work) => work.category === 'video');
       let loopCount = 0;
       let queuedMoves = 0;
       let isMoving = false;
+      let autoplayTimer: number | undefined;
+      let pointerInside = false;
+      let focusInside = false;
+
+      const stopAutoplay = () => {
+        if (autoplayTimer !== undefined) window.clearInterval(autoplayTimer);
+        autoplayTimer = undefined;
+      };
+
+      const startAutoplay = () => {
+        stopAutoplay();
+        if (!desktopCarousel.matches || !isInitialized || !motionAllowed || document.hidden || pointerInside || focusInside) return;
+        autoplayTimer = window.setInterval(() => stepCarousel(1), 5000);
+      };
+
+      const resetAutoplay = () => {
+        stopAutoplay();
+        startAutoplay();
+      };
 
       const cloneCard = (card: HTMLElement) => {
         const clone = card.cloneNode(true) as HTMLElement;
@@ -430,8 +449,36 @@ const videoWorks = works.filter((work) => work.category === 'video');
           stepCarousel(direction);
         }
       });
-      previous.addEventListener('click', () => stepCarousel(-1));
-      next.addEventListener('click', () => stepCarousel(1));
+      previous.addEventListener('click', () => {
+        stepCarousel(-1);
+        resetAutoplay();
+      });
+      next.addEventListener('click', () => {
+        stepCarousel(1);
+        resetAutoplay();
+      });
+
+      carousel.addEventListener('pointerenter', () => {
+        pointerInside = true;
+        stopAutoplay();
+      });
+      carousel.addEventListener('pointerleave', () => {
+        pointerInside = false;
+        startAutoplay();
+      });
+      carousel.addEventListener('focusin', () => {
+        focusInside = true;
+        stopAutoplay();
+      });
+      carousel.addEventListener('focusout', (event) => {
+        if (event.relatedTarget instanceof Node && carousel.contains(event.relatedTarget)) return;
+        focusInside = false;
+        startAutoplay();
+      });
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) stopAutoplay();
+        else startAutoplay();
+      });
 
       const setCarouselMode = () => {
         if (desktopCarousel.matches && !isInitialized) {
@@ -444,7 +491,9 @@ const videoWorks = works.filter((work) => work.category === 'video');
           moveTrack();
           void track.offsetWidth;
           track.style.transition = '';
+          startAutoplay();
         } else if (!desktopCarousel.matches && isInitialized) {
+          stopAutoplay();
           track.querySelectorAll('[data-carousel-clone]').forEach((clone) => clone.remove());
           track.style.transform = '';
           isInitialized = false;
@@ -463,8 +512,6 @@ const videoWorks = works.filter((work) => work.category === 'video');
       }, { passive: true });
       setCarouselMode();
     });
-
-    const motionAllowed = window.matchMedia('(prefers-reduced-motion: no-preference)').matches;
 
     const moreWorksButton = document.querySelector<HTMLAnchorElement>('.selected-more');
     if (moreWorksButton && motionAllowed) {
