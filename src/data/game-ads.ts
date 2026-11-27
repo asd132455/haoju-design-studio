@@ -3,8 +3,8 @@ import { join } from 'node:path';
 import type { WorkItem } from './works';
 
 export const gameAdCategories = [
-  { slug: 'korean-games', title: '韓系遊戲', folder: 'japanese-korean', filenamePrefix: '韓系' },
-  { slug: 'japanese-games', title: '日系遊戲', folder: 'japanese-korean', filenamePrefix: '日系' },
+  { slug: 'korean-games', title: '韓系遊戲' },
+  { slug: 'japanese-games', title: '日系遊戲' },
   { slug: 'western-games', title: '歐美遊戲' },
   { slug: 'chinese-games', title: '中式遊戲' },
   { slug: 'illustration-ads', title: '插畫廣告' },
@@ -25,7 +25,6 @@ const readCategoryWorks = (category: (typeof gameAdCategories)[number]): WorkIte
   try {
     filenames = readdirSync(folder).filter((filename) =>
       imageExtensions.has(filename.slice(filename.lastIndexOf('.')).toLowerCase())
-      && (!('filenamePrefix' in category) || filename.startsWith(category.filenamePrefix))
     );
   } catch {
     // An empty category folder is valid; new images will appear after the next build.
