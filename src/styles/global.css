@@ -272,8 +272,15 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--clay); outline-
 .work-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; align-items: start; }
 .work-card { min-width: 0; margin: 0; }
 .work-card__open { display: block; width: 100%; padding: 0; border: 0; background: transparent; cursor: zoom-in; text-align: left; }
+.work-card__open--video { cursor: pointer; }
 .work-card__image-wrap { position: relative; display: block; overflow: hidden; border-radius: var(--radius-card); background: var(--paper-dark); }
 .work-card__image-wrap img { width: 100%; height: auto; object-fit: contain; transition: transform .5s; }
+.work-card__image-wrap--video { aspect-ratio: 16 / 9; background: #1e1e1c; }
+.work-card__image-wrap--video img { width: 100%; height: 100%; object-fit: cover; }
+.work-card__play { position: absolute; inset: 0; display: grid; place-items: center; background: rgb(25 25 22 / 18%); transition: background-color .25s ease; }
+.work-card__play svg { width: 48px; height: 48px; padding: 12px 10px 12px 14px; border: 1px solid rgb(255 255 255 / 55%); border-radius: 50%; fill: #fff; background: rgb(32 32 29 / 64%); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); transition: transform .25s ease, background-color .25s ease, border-color .25s ease; }
+.work-card__open:hover .work-card__play, .work-card__open:focus-visible .work-card__play { background: rgb(25 25 22 / 30%); }
+.work-card__open:hover .work-card__play svg, .work-card__open:focus-visible .work-card__play svg { transform: scale(1.08); border-color: rgb(255 255 255 / 90%); background: var(--footer-ground); }
 .work-card__open:hover .work-card__image-wrap img, .work-card__open:focus-visible .work-card__image-wrap img { transform: scale(1.025); }
 .work-card__zoom { position: absolute; right: 12px; bottom: 12px; display: grid; place-items: center; width: 35px; height: 35px; border-radius: 50%; color: var(--sage-dark); background: var(--paper-light); opacity: 0; transform: translateY(5px); transition: opacity .2s, transform .2s; }
 .work-card__open:hover .work-card__zoom, .work-card__open:focus-visible .work-card__zoom { opacity: 1; transform: translateY(0); }
@@ -309,6 +316,11 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--clay); outline-
 .lightbox__nav--next { right: 12px; }
 .lightbox__close { position: static; z-index: 3; }
 .lightbox__image-wrap { display: grid; place-items: center; width: calc(100% - 136px); height: 100%; min-width: 0; min-height: 0; margin-inline: auto; overflow: hidden; touch-action: none; }
+.lightbox__image-wrap[hidden], .lightbox__video-wrap[hidden] { display: none; }
+.lightbox__video-wrap { display: grid; place-items: center; width: calc(100% - 136px); height: 100%; min-width: 0; min-height: 0; margin-inline: auto; }
+.lightbox__video-frame { width: min(100%, 1280px); aspect-ratio: 16 / 9; max-height: 100%; overflow: hidden; border-radius: 12px; background: #000; box-shadow: 0 18px 48px rgb(0 0 0 / 45%); }
+.lightbox__video-frame iframe { display: block; width: 100%; height: 100%; border: 0; }
+.lightbox.is-video .lightbox__hint { display: none; }
 .lightbox__image-wrap img { display: block; width: 100%; height: 100%; min-width: 0; min-height: 0; border-radius: 6px; object-fit: contain; transform-origin: center; transition: transform .15s ease-out; }
 .lightbox__image-wrap img[hidden] { display: none; }
 .lightbox[data-category='sales-page'] .lightbox__image-wrap { overflow-y: auto; place-items: start center; scrollbar-width: thin; scrollbar-color: rgb(255 255 255 / 26%) transparent; }
@@ -479,7 +491,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--clay); outline-
   .lightbox__nav svg { width: 17px; height: 17px; }
   .lightbox__nav--prev { grid-column: 2; grid-row: 3; }
   .lightbox__nav--next { grid-column: 3; grid-row: 3; }
-  .lightbox__image-wrap { grid-column: 1 / -1; grid-row: 2; width: 100%; }
+  .lightbox__image-wrap, .lightbox__video-wrap { grid-column: 1 / -1; grid-row: 2; width: 100%; }
   .lightbox__hint { grid-column: 1 / -1; grid-row: 4; }
   .lightbox__hint { display: block; }
   .lightbox[data-category='sales-page'] .lightbox__image-wrap img { width: 100%; }

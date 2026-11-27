@@ -13,17 +13,24 @@ const { items, activeCategory } = Astro.props;
   {items.map((work, index) => (
     <article class="work-card" data-scroll-reveal-repeat data-work-category={work.category} hidden={activeCategory ? work.category !== activeCategory : undefined}>
       <button
-        class="work-card__open"
+        class:list={['work-card__open', work.videoUrl && 'work-card__open--video']}
         type="button"
         data-lightbox-open
         data-image={work.image}
         data-alt={work.alt}
         data-category={work.category}
-        aria-label={`放大觀看：${work.title}`}
+        data-video-embed={work.videoUrl}
+        aria-label={work.videoUrl ? `播放影片：${work.title}` : `放大觀看：${work.title}`}
       >
-        <span class="work-card__image-wrap">
+        <span class:list={['work-card__image-wrap', work.videoUrl && 'work-card__image-wrap--video']}>
           <img src={work.image} alt={work.alt} loading={index < 3 ? 'eager' : 'lazy'} decoding="async" />
-          <span class="work-card__zoom" aria-hidden="true">↗</span>
+          {work.videoUrl ? (
+            <span class="work-card__play" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M8.5 6.5 18 12l-9.5 5.5z" /></svg>
+            </span>
+          ) : (
+            <span class="work-card__zoom" aria-hidden="true">↗</span>
+          )}
         </span>
       </button>
     </article>
@@ -38,6 +45,17 @@ const { items, activeCategory } = Astro.props;
   <div class="lightbox__image-wrap">
     <img data-lightbox-image src="" alt="" />
   </div>
+  <div class="lightbox__video-wrap" data-lightbox-video-wrap hidden>
+    <div class="lightbox__video-frame">
+      <iframe
+        data-lightbox-iframe
+        title="影片播放"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen
+        referrerpolicy="strict-origin-when-cross-origin"
+      ></iframe>
+    </div>
+  </div>
   <button class="lightbox__nav lightbox__nav--next" type="button" data-lightbox-next aria-label="下一張作品"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 5 7 7-7 7" /></svg></button>
   <p class="lightbox__hint">觸控螢幕可雙指縮放，左右滑動切換作品</p>
 </dialog>
@@ -49,6 +67,8 @@ const { items, activeCategory } = Astro.props;
   const previousButton = dialog?.querySelector<HTMLButtonElement>('[data-lightbox-prev]');
   const nextButton = dialog?.querySelector<HTMLButtonElement>('[data-lightbox-next]');
   const imageWrap = dialog?.querySelector<HTMLElement>('.lightbox__image-wrap');
+  const videoWrap = dialog?.querySelector<HTMLElement>('[data-lightbox-video-wrap]');
+  const videoIframe = dialog?.querySelector<HTMLIFrameElement>('[data-lightbox-iframe]');
   const studioCursor = document.querySelector<HTMLElement>('.studio-cursor');
   const allCards = [...document.querySelectorAll<HTMLButtonElement>('[data-lightbox-open]')];
   let cards = [...allCards];
@@ -76,12 +96,32 @@ const { items, activeCategory } = Astro.props;
     currentIndex = (index + cards.length) % cards.length;
     const button = cards[currentIndex];
     const requestId = ++imageRequest;
-    const nextImageSource = button.dataset.image ?? '';
-    if (!image.hasAttribute('src')) image.hidden = true;
-    image.alt = button.dataset.alt ?? '';
+    const videoEmbed = button.dataset.videoEmbed ?? '';
     dialog?.setAttribute('data-category', button.dataset.category ?? '');
     resetScale();
     imageWrap?.scrollTo({ top: 0, left: 0 });
+
+    if (videoEmbed && videoWrap && videoIframe && imageWrap) {
+      imageWrap.hidden = true;
+      image.hidden = true;
+      image.removeAttribute('src');
+      videoWrap.hidden = false;
+      videoIframe.src = videoEmbed;
+      videoIframe.title = button.dataset.alt || '影片播放';
+      dialog?.classList.add('is-video');
+      return;
+    }
+
+    if (videoWrap && videoIframe && imageWrap) {
+      videoIframe.src = '';
+      videoWrap.hidden = true;
+      imageWrap.hidden = false;
+      dialog?.classList.remove('is-video');
+    }
+
+    const nextImageSource = button.dataset.image ?? '';
+    if (!image.hasAttribute('src')) image.hidden = true;
+    image.alt = button.dataset.alt ?? '';
 
     const preload = new Image();
     const revealLoadedImage = () => {
@@ -130,7 +170,7 @@ const { items, activeCategory } = Astro.props;
     dialog.addEventListener('click', (event) => {
       const target = event.target;
       if (!(target instanceof Element)) return;
-      if (target.closest('button')) return;
+      if (target.closest('button') || target.closest('.lightbox__video-frame')) return;
       const clickedImage = target.closest<HTMLImageElement>('img[data-lightbox-image]')
         ?? (target.closest('.lightbox__image-wrap') ? image : null);
       if (clickedImage && image.naturalWidth > 0 && image.naturalHeight > 0) {
@@ -173,6 +213,10 @@ const { items, activeCategory } = Astro.props;
       imageRequest++;
       image.hidden = true;
       image.removeAttribute('src');
+      if (videoIframe) videoIframe.src = '';
+      if (videoWrap) videoWrap.hidden = true;
+      imageWrap.hidden = false;
+      dialog.classList.remove('is-video');
       resetScale();
     });
 

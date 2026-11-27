@@ -17,7 +17,44 @@ export const gameAdCategories = [
 const gameAdsRoot = join(process.cwd(), 'public', 'images', 'game-ads');
 const imageExtensions = new Set(['.jpg', '.jpeg', '.png', '.webp', '.avif']);
 
+const videoAdUrls = [
+  'https://youtu.be/AGbS1QfKsso',
+  'https://youtu.be/YZf8cTt_C8A',
+  'https://youtu.be/tss29nfP4RA',
+  'https://youtu.be/Q0x2pc3dYVY',
+  'https://youtu.be/NDtLdi8kiGQ',
+  'https://youtu.be/smw1kYTFDp8',
+  'https://youtu.be/AOP_XaywPGY',
+  'https://youtu.be/ZdIDDLSjDio',
+  'https://youtu.be/CX18KnxPbrg',
+  'https://youtu.be/d508TmnYNs0',
+  'https://youtu.be/dJqe_47mTCM',
+  'https://youtu.be/OXaaJu2qjDo',
+  'https://youtu.be/A6Zej0ZbSHY',
+  'https://youtu.be/5Hmx5adVqFg',
+];
+
+const getYoutubeId = (url: string) => {
+  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([A-Za-z0-9_-]{11})/);
+  return match ? match[1] : null;
+};
+
+const readVideoAdWorks = (): WorkItem[] =>
+  videoAdUrls.flatMap((url, index) => {
+    const id = getYoutubeId(url);
+    if (!id) return [];
+    const label = `影片廣告 ${String(index + 1).padStart(2, '0')}`;
+    return [{
+      category: 'video-ads',
+      title: label,
+      image: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
+      alt: `${label}｜遊戲廣告影片作品`,
+      videoUrl: `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&vq=hd1080`,
+    }];
+  });
+
 const readCategoryWorks = (category: (typeof gameAdCategories)[number]): WorkItem[] => {
+  if (category.slug === 'video-ads') return readVideoAdWorks();
   const sourceFolder = 'folder' in category ? category.folder : category.slug;
   const folder = join(gameAdsRoot, sourceFolder);
   let filenames: string[] = [];
@@ -30,19 +67,7 @@ const readCategoryWorks = (category: (typeof gameAdCategories)[number]): WorkIte
     // An empty category folder is valid; new images will appear after the next build.
   }
 
-  filenames.sort((a, b) => {
-    const getSeries = (filename: string) => {
-      const stem = filename.replace(/\.[^.]+$/, '');
-      const match = stem.match(/^(.*?)(\d+)$/);
-      return match ? { name: match[1], number: Number(match[2]) } : { name: stem, number: null };
-    };
-    const seriesA = getSeries(a);
-    const seriesB = getSeries(b);
-    const nameOrder = seriesA.name.localeCompare(seriesB.name, 'zh-Hant', { numeric: true });
-    if (nameOrder !== 0) return nameOrder;
-    if (seriesA.number !== null && seriesB.number !== null) return seriesB.number - seriesA.number;
-    return seriesA.number === null ? 1 : -1;
-  });
+  filenames.sort((a, b) => a.localeCompare(b, 'zh-Hant', { numeric: true }));
 
   return filenames.map((filename) => {
     const title = filename.replace(/\.[^.]+$/, '').replace(/^\d+[-_]+/, '').replace(/[-_]+/g, ' ').trim() || category.title;
